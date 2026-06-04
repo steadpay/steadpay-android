@@ -1,0 +1,57 @@
+package io.steadpay.core
+
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.json.JSONObject
+
+class SteadpayApiError(val code: String) : Exception(code)
+
+private val failOpen = SteadpayState(
+    status = SteadpayStatus.Active,
+    cardUpdateUrl = null,
+    entitlements = Entitlements(
+        poweredByWatermark = false,
+        customDomain = false,
+        downstreamWebhooks = false,
+    ),
+)
+
+fun fetchSubscriberStatus(
+    baseUrl: String,
+    tenantSlug: String,
+    customerId: String,
+    publishableKey: String,
+    client: OkHttpClient = OkHttpClient(),
+): SteadpayState {
+    val encodedSlug = java.net.URLEncoder.encode(tenantSlug, "UTF-8")
+    val encodedCustomer = java.net.URLEncoder.encode(customerId, "UTF-8")
+    val url = "$baseUrl/api/subscriber-status/$encodedSlug?stripe_customer_id=$encodedCustomer"
+
+    val request = Request.Builder()
+        .url(url)
+        .header("Authorization", "Bearer $publishableKey")
+        .build()
+
+    val response = client.newCall(request).execute()
+    val code = response.code
+
+    if (code == 402) return failOpen
+    if (code == 401) throw SteadpayApiError("unauthorized")
+    if (code == 404) throw SteadpayApiError("tenant_not_found")
+    if (code != 200) throw SteadpayApiError("unexpected_status_$code")
+
+    val body = response.body?.string() ?: throw SteadpayApiError("empty_body")
+    val json = JSONObject(body)
+    val ent = json.getJSONObject("entitlements")
+
+    return SteadpayState(
+        status = SteadpayStatus.values().firstOrNull { it.name.lowercase() == json.getString("status") }
+            ?: SteadpayStatus.Error,
+        cardUpdateUrl = if (json.isNull("card_update_url")) null else json.getString("card_update_url"),
+        entitlements = Entitlements(
+            poweredByWatermark = ent.getBoolean("powered_by_watermark"),
+            customDomain = ent.getBoolean("custom_domain"),
+            downstreamWebhooks = ent.getBoolean("downstream_webhooks"),
+        ),
+    )
+}
