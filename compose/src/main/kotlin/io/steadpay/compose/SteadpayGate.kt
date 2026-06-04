@@ -3,13 +3,9 @@ package io.steadpay.compose
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.ui.platform.LocalContext
 import io.steadpay.core.*
-import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun SteadpayGate(
@@ -25,7 +21,9 @@ fun SteadpayGate(
 ) {
     val context = LocalContext.current
 
-    val controller = remember(customerId) {
+    // Key on all config params so a rotated publishableKey or changed tenantSlug
+    // disposes the stale controller and creates a fresh one.
+    val controller = remember(tenantSlug, customerId, publishableKey, apiBase, pollIntervalMs) {
         SteadpayController(
             config = SteadpayConfig(
                 apiBase = apiBase,
@@ -44,9 +42,11 @@ fun SteadpayGate(
         )
     }
 
-    DisposableEffect(customerId) {
+    // dispose() cancels the coroutine scope; keys match remember() so the effect
+    // re-runs (disposes old, starts new) whenever any config param changes.
+    DisposableEffect(tenantSlug, customerId, publishableKey, apiBase, pollIntervalMs) {
         controller.start()
-        onDispose { controller.stop() }
+        onDispose { controller.dispose() }
     }
 
     val state by controller.stateFlow.collectAsState()

@@ -9,6 +9,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import okhttp3.OkHttpClient
 
 typealias FetchFn = (String, String, String, String) -> SteadpayState
 
@@ -17,7 +18,7 @@ class SteadpayController(
     val forcedStatus: SteadpayStatus? = null,
     private val callbacks: SteadpayCallbacks? = null,
     private val urlLauncher: ((String) -> Unit)? = null,
-    private val fetch: FetchFn = ::fetchSubscriberStatus,
+    fetch: FetchFn? = null,
 ) {
     private val _stateFlow = MutableStateFlow(SteadpayState())
     val stateFlow: StateFlow<SteadpayState> = _stateFlow
@@ -29,6 +30,14 @@ class SteadpayController(
     private var pollingJob: Job? = null
     private var lastStatus: SteadpayStatus? = null
     private var isRecoveryPath = false
+
+    // Shared across all poll calls for this controller instance.
+    private val httpClient = OkHttpClient()
+
+    private val fetch: FetchFn = fetch
+        ?: { apiBase, tenantSlug, customerId, publishableKey ->
+            fetchSubscriberStatus(apiBase, tenantSlug, customerId, publishableKey, httpClient)
+        }
 
     fun start() {
         if (forcedStatus != null) {
@@ -65,6 +74,8 @@ class SteadpayController(
 
     fun dispose() {
         scope.cancel()
+        httpClient.dispatcher.executorService.shutdown()
+        httpClient.connectionPool.evictAll()
     }
 
     private fun startPolling() {
