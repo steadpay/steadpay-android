@@ -1,18 +1,19 @@
 package io.steadpay.compose
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -110,7 +111,8 @@ fun SteadpaySandbox(
                 modifier = Modifier
                     .width(64.dp)
                     .height(28.dp)
-                    .clickable { sheetOpen = true },
+                    .clickable { sheetOpen = true }
+                    .semantics { testTag = "sandbox-dev-badge" },
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Text(
@@ -118,7 +120,6 @@ fun SteadpaySandbox(
                         color = Color.White,
                         fontSize = 11.sp,
                         fontFamily = FontFamily.Monospace,
-                        modifier = Modifier.semantics { testTag = "sandbox-dev-badge" },
                     )
                 }
             }
@@ -160,14 +161,34 @@ fun SteadpaySandbox(
                             SteadpayStatus.Lockout,
                             SteadpayStatus.Error,
                         ).forEach { status ->
-                            Button(
-                                onClick = {
-                                    changeStatus(status)
-                                    if (status != SteadpayStatus.Error) sheetOpen = false
-                                },
-                                modifier = Modifier.semantics { testTag = "sandbox-pill-${status.name.lowercase()}" },
+                            val isSelected = currentStatus == status
+                            val pillColor = when (status) {
+                                SteadpayStatus.Active  -> Color(0xFF22C55E)
+                                SteadpayStatus.Warning -> Color(0xFFF59E0B)
+                                SteadpayStatus.Lockout -> Color(0xFFEF4444)
+                                else                   -> Color(0xFF6B7280)
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .background(
+                                        if (isSelected) pillColor else Color.Transparent,
+                                        RoundedCornerShape(20.dp),
+                                    )
+                                    .border(1.dp, Color.White.copy(alpha = 0.24f), RoundedCornerShape(20.dp))
+                                    .clickable {
+                                        changeStatus(status)
+                                        if (status != SteadpayStatus.Error) sheetOpen = false
+                                    }
+                                    .semantics { testTag = "sandbox-pill-${status.name.lowercase()}" }
+                                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                                contentAlignment = Alignment.Center,
                             ) {
-                                Text(status.name)
+                                Text(
+                                    status.name,
+                                    color = if (isSelected) Color(0xFF111111) else Color(0xFF888888),
+                                    fontSize = 12.sp,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                )
                             }
                         }
                     }
