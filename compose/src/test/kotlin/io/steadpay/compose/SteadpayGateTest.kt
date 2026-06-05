@@ -49,11 +49,9 @@ class SteadpayGateTest {
     }
 
     @Test fun customLockoutScreenBuilderCalledOnLockout() {
-        var builderCalled = false
         composeRule.setContent {
             SteadpaySandbox(
                 lockoutScreen = { _, _ ->
-                    builderCalled = true
                     Text("custom lockout")
                 },
             ) {
@@ -62,16 +60,13 @@ class SteadpayGateTest {
         }
         composeRule.onNodeWithTag("sandbox-dev-badge").performClick()
         composeRule.onNodeWithTag("sandbox-pill-lockout").performClick()
-        assert(builderCalled)
         composeRule.onNodeWithText("custom lockout").assertIsDisplayed()
     }
 
     @Test fun customWarningBannerBuilderCalledOnWarning() {
-        var builderCalled = false
         composeRule.setContent {
             SteadpaySandbox(
                 warningBanner = { _, _ ->
-                    builderCalled = true
                     Text("custom banner")
                 },
             ) {
@@ -80,7 +75,6 @@ class SteadpayGateTest {
         }
         composeRule.onNodeWithTag("sandbox-dev-badge").performClick()
         composeRule.onNodeWithTag("sandbox-pill-warning").performClick()
-        assert(builderCalled)
         composeRule.onNodeWithText("custom banner").assertIsDisplayed()
     }
 }
