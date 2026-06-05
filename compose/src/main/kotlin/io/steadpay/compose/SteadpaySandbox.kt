@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -31,16 +32,24 @@ fun SteadpaySandbox(
 ) {
     var currentStatus by remember { mutableStateOf(SteadpayStatus.Active) }
     var sheetOpen by remember { mutableStateOf(false) }
+    var dismissed by remember { mutableStateOf(false) }
     val log = remember { mutableStateListOf<String>() }
     var lastStatus by remember { mutableStateOf<SteadpayStatus?>(SteadpayStatus.Active) }
 
+    // Reset dismissed whenever status leaves Warning
+    LaunchedEffect(currentStatus) {
+        if (currentStatus != SteadpayStatus.Warning) dismissed = false
+    }
+
     val changeStatus: (SteadpayStatus) -> Unit = { next ->
         if (next == SteadpayStatus.Error) {
-            onError?.invoke(RuntimeException("sandbox_error"))
-            log.add(0, "onError(sandbox_error)")
-            if (log.size > 5) log.removeAt(log.size - 1)
-            currentStatus = SteadpayStatus.Error
-            lastStatus = SteadpayStatus.Error
+            if (currentStatus != SteadpayStatus.Error) {
+                onError?.invoke(RuntimeException("sandbox_error"))
+                log.add(0, "onError(sandbox_error)")
+                if (log.size > 5) log.removeAt(log.size - 1)
+                currentStatus = SteadpayStatus.Error
+                lastStatus = SteadpayStatus.Error
+            }
         } else {
             val cbName = computeTransition(lastStatus, next, false)
             currentStatus = next
@@ -74,11 +83,11 @@ fun SteadpaySandbox(
             }
             else -> {
                 Column {
-                    if (currentStatus == SteadpayStatus.Warning) {
+                    if (currentStatus == SteadpayStatus.Warning && !dismissed) {
                         if (warningBanner != null) {
-                            warningBanner({ }, { })
+                            warningBanner({ }, { dismissed = true })
                         } else {
-                            WarningBanner(onTriggerCardUpdate = {}, onDismiss = {})
+                            WarningBanner(onTriggerCardUpdate = {}, onDismiss = { dismissed = true })
                         }
                     }
                     content()

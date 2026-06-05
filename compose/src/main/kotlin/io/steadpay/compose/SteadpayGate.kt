@@ -14,6 +14,7 @@ fun SteadpayGate(
     publishableKey: String,
     apiBase: String,
     pollIntervalMs: Long = 600_000L,
+    forcedStatus: SteadpayStatus? = null,
     callbacks: SteadpayCallbacks? = null,
     lockoutScreen: (@Composable (triggerCardUpdate: () -> Unit, entitlements: Entitlements?) -> Unit)? = null,
     warningBanner: (@Composable (triggerCardUpdate: () -> Unit, dismissWarning: () -> Unit) -> Unit)? = null,
@@ -23,7 +24,7 @@ fun SteadpayGate(
 
     // Key on all config params so a rotated publishableKey or changed tenantSlug
     // disposes the stale controller and creates a fresh one.
-    val controller = remember(tenantSlug, customerId, publishableKey, apiBase, pollIntervalMs) {
+    val controller = remember(tenantSlug, customerId, publishableKey, apiBase, pollIntervalMs, forcedStatus) {
         SteadpayController(
             config = SteadpayConfig(
                 apiBase = apiBase,
@@ -32,6 +33,7 @@ fun SteadpayGate(
                 publishableKey = publishableKey,
                 pollIntervalMs = pollIntervalMs,
             ),
+            forcedStatus = forcedStatus,
             callbacks = callbacks,
             urlLauncher = { url ->
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
@@ -44,7 +46,7 @@ fun SteadpayGate(
 
     // dispose() cancels the coroutine scope; keys match remember() so the effect
     // re-runs (disposes old, starts new) whenever any config param changes.
-    DisposableEffect(tenantSlug, customerId, publishableKey, apiBase, pollIntervalMs) {
+    DisposableEffect(tenantSlug, customerId, publishableKey, apiBase, pollIntervalMs, forcedStatus) {
         controller.start()
         onDispose { controller.dispose() }
     }
