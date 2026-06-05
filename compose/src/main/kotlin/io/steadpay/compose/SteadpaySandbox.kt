@@ -1,5 +1,6 @@
 package io.steadpay.compose
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,7 +21,6 @@ import io.steadpay.core.Entitlements
 import io.steadpay.core.SteadpayStatus
 import io.steadpay.core.computeTransition
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SteadpaySandbox(
     onLockout: (() -> Unit)? = null,
@@ -124,11 +124,19 @@ fun SteadpaySandbox(
             }
         }
 
-        // Control panel sheet
+        // Control panel overlay (no animation so it is immediately in the semantic tree)
         if (sheetOpen) {
-            ModalBottomSheet(
-                onDismissRequest = { sheetOpen = false },
-                sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.54f))
+                    .clickable { sheetOpen = false },
+            )
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .background(Color(0xFF1A1A2E), RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
             ) {
                 Column(
                     modifier = Modifier
