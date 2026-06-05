@@ -1,5 +1,6 @@
 package io.steadpay.core
 
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -19,6 +20,7 @@ class SteadpayController(
     private val callbacks: SteadpayCallbacks? = null,
     private val urlLauncher: ((String) -> Unit)? = null,
     fetch: FetchFn? = null,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
     private val _stateFlow = MutableStateFlow(SteadpayState())
     val stateFlow: StateFlow<SteadpayState> = _stateFlow
@@ -26,7 +28,7 @@ class SteadpayController(
     private val _dismissedFlow = MutableStateFlow(false)
     val dismissedFlow: StateFlow<Boolean> = _dismissedFlow
 
-    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private val scope = CoroutineScope(ioDispatcher + SupervisorJob())
     private var pollingJob: Job? = null
     private var lastStatus: SteadpayStatus? = null
     private var isRecoveryPath = false

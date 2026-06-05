@@ -1,6 +1,7 @@
 package io.steadpay.core
 
 import app.cash.turbine.test
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -71,8 +72,13 @@ class SteadpayControllerTest {
     }
 
     @Test fun startEmitsCorrectStatus() = runTest {
-        val controller = SteadpayController(config(), fetch = mockFetch(SteadpayStatus.Active))
+        val controller = SteadpayController(
+            config(),
+            fetch = mockFetch(SteadpayStatus.Active),
+            ioDispatcher = UnconfinedTestDispatcher(testScheduler),
+        )
         controller.stateFlow.test {
+            skipItems(1) // initial Loading
             controller.start()
             val state = awaitItem()
             assertEquals(SteadpayStatus.Active, state.status)
@@ -141,8 +147,10 @@ class SteadpayControllerTest {
             config(),
             callbacks = callbacks,
             fetch = { _, _, _, _ -> throw SteadpayApiError("unauthorized") },
+            ioDispatcher = UnconfinedTestDispatcher(testScheduler),
         )
         controller.stateFlow.test {
+            skipItems(1) // initial Loading
             controller.start()
             val state = awaitItem()
             assertEquals(SteadpayStatus.Error, state.status)
