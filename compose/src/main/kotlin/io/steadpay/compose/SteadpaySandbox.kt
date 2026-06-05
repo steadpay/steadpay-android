@@ -20,6 +20,7 @@ import io.steadpay.core.Entitlements
 import io.steadpay.core.SteadpayStatus
 import io.steadpay.core.computeTransition
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SteadpaySandbox(
     onLockout: (() -> Unit)? = null,
