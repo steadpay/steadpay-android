@@ -124,7 +124,8 @@ fun SteadpaySandbox(
             }
         }
 
-        // Control panel overlay (no animation so it is immediately in the semantic tree)
+        // Control panel overlay — Column is a direct BoxScope child so pills are
+        // immediately reachable in the semantic tree without an intermediate Box.
         if (sheetOpen) {
             Box(
                 modifier = Modifier
@@ -132,17 +133,14 @@ fun SteadpaySandbox(
                     .background(Color.Black.copy(alpha = 0.54f))
                     .clickable { sheetOpen = false },
             )
-            Box(
+            Column(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .background(Color(0xFF1A1A2E), RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
+                    .heightIn(max = 400.dp)
+                    .background(Color(0xFF1A1A2E), RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                    .padding(16.dp),
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxHeight(0.4f)
-                        .padding(16.dp),
-                ) {
                     Text(
                         "STEADPAY SANDBOX",
                         style = MaterialTheme.typography.labelSmall,
@@ -193,7 +191,6 @@ fun SteadpaySandbox(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.semantics { testTag = "sandbox-recovered-note" },
                     )
-                }
             }
         }
     }
