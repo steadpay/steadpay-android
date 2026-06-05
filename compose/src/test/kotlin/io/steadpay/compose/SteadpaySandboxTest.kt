@@ -49,6 +49,8 @@ class SteadpaySandboxTest {
         }
         composeRule.onNodeWithTag("sandbox-dev-badge").performClick()
         composeRule.onNodeWithTag("sandbox-pill-lockout").performClick()
+        // Panel closes on status change; reopen to inspect the log
+        composeRule.onNodeWithTag("sandbox-dev-badge").performClick()
         composeRule.onNodeWithText("OnLockout()", substring = true).assertExists()
     }
 

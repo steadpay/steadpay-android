@@ -36,4 +36,5 @@ dependencies {
     testImplementation(libs.compose.ui.test.junit4)
     testImplementation(libs.robolectric)
     debugImplementation(libs.compose.ui.test.manifest)
+    testImplementation(libs.compose.ui.test.manifest)
 }
