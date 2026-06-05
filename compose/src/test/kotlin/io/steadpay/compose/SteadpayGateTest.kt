@@ -1,17 +1,18 @@
 package io.steadpay.compose
 
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
-import io.steadpay.core.Entitlements
-import io.steadpay.core.SteadpayStatus
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
+/**
+ * Gate rendering tests. SteadpaySandbox starts in Active by default;
+ * status transitions are driven via the DEV badge + pills.
+ */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [33])
 class SteadpayGateTest {
@@ -20,9 +21,7 @@ class SteadpayGateTest {
 
     @Test fun rendersChildrenOnActive() {
         composeRule.setContent {
-            SteadpaySandbox(forcedStatus = SteadpayStatus.Active) {
-                Text("protected content")
-            }
+            SteadpaySandbox { Text("protected content") }
         }
         composeRule.onNodeWithText("protected content").assertIsDisplayed()
         composeRule.onNodeWithText("Payment method declined").assertDoesNotExist()
@@ -30,20 +29,20 @@ class SteadpayGateTest {
 
     @Test fun rendersLockoutScreenOnLockout() {
         composeRule.setContent {
-            SteadpaySandbox(forcedStatus = SteadpayStatus.Lockout) {
-                Text("protected content")
-            }
+            SteadpaySandbox { Text("protected content") }
         }
+        composeRule.onNodeWithTag("sandbox-dev-badge").performClick()
+        composeRule.onNodeWithTag("sandbox-pill-lockout").performClick()
         composeRule.onNodeWithText("Payment method declined").assertIsDisplayed()
         composeRule.onNodeWithText("protected content").assertDoesNotExist()
     }
 
     @Test fun rendersWarningBannerAndChildrenOnWarning() {
         composeRule.setContent {
-            SteadpaySandbox(forcedStatus = SteadpayStatus.Warning) {
-                Text("protected content")
-            }
+            SteadpaySandbox { Text("protected content") }
         }
+        composeRule.onNodeWithTag("sandbox-dev-badge").performClick()
+        composeRule.onNodeWithTag("sandbox-pill-warning").performClick()
         composeRule.onNodeWithText("Please update your payment method to avoid interruption.")
             .assertIsDisplayed()
         composeRule.onNodeWithText("protected content").assertIsDisplayed()
@@ -53,7 +52,6 @@ class SteadpayGateTest {
         var builderCalled = false
         composeRule.setContent {
             SteadpaySandbox(
-                forcedStatus = SteadpayStatus.Lockout,
                 lockoutScreen = { _, _ ->
                     builderCalled = true
                     Text("custom lockout")
@@ -62,6 +60,8 @@ class SteadpayGateTest {
                 Text("protected content")
             }
         }
+        composeRule.onNodeWithTag("sandbox-dev-badge").performClick()
+        composeRule.onNodeWithTag("sandbox-pill-lockout").performClick()
         assert(builderCalled)
         composeRule.onNodeWithText("custom lockout").assertIsDisplayed()
     }
@@ -70,7 +70,6 @@ class SteadpayGateTest {
         var builderCalled = false
         composeRule.setContent {
             SteadpaySandbox(
-                forcedStatus = SteadpayStatus.Warning,
                 warningBanner = { _, _ ->
                     builderCalled = true
                     Text("custom banner")
@@ -79,6 +78,8 @@ class SteadpayGateTest {
                 Text("protected content")
             }
         }
+        composeRule.onNodeWithTag("sandbox-dev-badge").performClick()
+        composeRule.onNodeWithTag("sandbox-pill-warning").performClick()
         assert(builderCalled)
         composeRule.onNodeWithText("custom banner").assertIsDisplayed()
     }
