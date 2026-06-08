@@ -88,12 +88,8 @@ class FetchSubscriberStatusTest {
         }
     }
 
-    @Test fun clientHasCallTimeout() {
-        // Verify the default client is built with a call timeout — the timeout value
-        // is readable via the OkHttpClient builder but not directly on the built instance;
-        // we verify the timeout is set by inspecting the builder's call timeout millis.
-        val defaultClient = OkHttpClient.Builder().callTimeout(10, java.util.concurrent.TimeUnit.SECONDS).build()
-        assertEquals(10_000L, defaultClient.callTimeoutMillis.toLong())
+    @Test fun defaultFetchClientHasCallTimeout() {
+        assertEquals(10_000L, defaultFetchClient.callTimeoutMillis.toLong())
     }
 }
 

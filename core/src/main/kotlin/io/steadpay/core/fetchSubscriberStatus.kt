@@ -7,6 +7,13 @@ import java.util.concurrent.TimeUnit
 
 class SteadpayApiError(val code: String) : Exception(code)
 
+// Single shared client for callers that don't supply their own.
+// SteadpayController always passes its own httpClient, so this is only
+// used by direct callers (e.g. tests or one-off utilities).
+internal val defaultFetchClient: OkHttpClient = OkHttpClient.Builder()
+    .callTimeout(10, TimeUnit.SECONDS)
+    .build()
+
 private val failOpen = SteadpayState(
     status = SteadpayStatus.Active,
     cardUpdateUrl = null,
@@ -22,7 +29,7 @@ fun fetchSubscriberStatus(
     tenantSlug: String,
     customerId: String,
     publishableKey: String,
-    client: OkHttpClient = OkHttpClient.Builder().callTimeout(10, TimeUnit.SECONDS).build(),
+    client: OkHttpClient = defaultFetchClient,
 ): SteadpayState {
     val encodedSlug = java.net.URLEncoder.encode(tenantSlug, "UTF-8")
     val encodedCustomer = java.net.URLEncoder.encode(customerId, "UTF-8")
