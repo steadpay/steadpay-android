@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
+import java.util.concurrent.TimeUnit
 
 typealias FetchFn = (String, String, String, String) -> SteadpayState
 
@@ -34,7 +35,9 @@ class SteadpayController(
     private var isRecoveryPath = false
 
     // Shared across all poll calls for this controller instance.
-    private val httpClient = OkHttpClient()
+    private val httpClient = OkHttpClient.Builder()
+        .callTimeout(10, TimeUnit.SECONDS)
+        .build()
 
     private val fetch: FetchFn = fetch
         ?: { apiBase, tenantSlug, customerId, publishableKey ->
@@ -64,6 +67,7 @@ class SteadpayController(
 
     fun triggerCardUpdate() {
         val url = _stateFlow.value.cardUpdateUrl ?: return
+        if (!url.startsWith("https://")) return
         isRecoveryPath = true
         _dismissedFlow.value = false
         urlLauncher?.invoke(url)

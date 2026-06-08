@@ -1,0 +1,2 @@
+-keep class io.steadpay.core.** { *; }
+-keep interface io.steadpay.core.** { *; }

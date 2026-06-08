@@ -6,4 +6,11 @@ data class SteadpayConfig(
     val customerId: String,
     val publishableKey: String,
     val pollIntervalMs: Long = 600_000L,
-)
+) {
+    init {
+        require(apiBase.startsWith("https://")) { "apiBase must start with https://" }
+        require(tenantSlug.isNotEmpty()) { "tenantSlug must not be empty" }
+        require(customerId.isNotEmpty()) { "customerId must not be empty" }
+        require(publishableKey.startsWith("pk_")) { "publishableKey must start with pk_" }
+    }
+}
