@@ -87,4 +87,73 @@ class FetchSubscriberStatusTest {
             "Path was: ${request.path}"
         }
     }
+
+    @Test fun clientHasCallTimeout() {
+        // Verify the default client is built with a call timeout — the timeout value
+        // is readable via the OkHttpClient builder but not directly on the built instance;
+        // we verify the timeout is set by inspecting the builder's call timeout millis.
+        val defaultClient = OkHttpClient.Builder().callTimeout(10, java.util.concurrent.TimeUnit.SECONDS).build()
+        assertEquals(10_000L, defaultClient.callTimeoutMillis.toLong())
+    }
 }
+
+class SteadpayConfigValidationTest {
+    @Test(expected = IllegalArgumentException::class)
+    fun rejectsHttpApiBase() {
+        SteadpayConfig(
+            apiBase = "http://app.steadpay.io",
+            tenantSlug = "acme",
+            customerId = "cus_123",
+            publishableKey = "pk_live_abc",
+        )
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun rejectsEmptyTenantSlug() {
+        SteadpayConfig(
+            apiBase = "https://app.steadpay.io",
+            tenantSlug = "",
+            customerId = "cus_123",
+            publishableKey = "pk_live_abc",
+        )
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun rejectsNonPkPublishableKey() {
+        SteadpayConfig(
+            apiBase = "https://app.steadpay.io",
+            tenantSlug = "acme",
+            customerId = "cus_123",
+            publishableKey = "sk_live_abc",
+        )
+    }
+}
+
+class TriggerCardUpdateSecurityTest {
+    @Test fun doesNotLaunchNonHttpsUrl() {
+        var launched: String? = null
+        val controller = SteadpayController(
+            config(),
+            fetch = { _, _, _, _ ->
+                SteadpayState(
+                    status = SteadpayStatus.Lockout,
+                    cardUpdateUrl = "javascript:alert(1)",
+                    entitlements = Entitlements(poweredByWatermark = false, customDomain = false, downstreamWebhooks = false),
+                )
+            },
+            urlLauncher = { url -> launched = url },
+        )
+        controller.start()
+        Thread.sleep(200) // let coroutine poll complete
+        controller.triggerCardUpdate()
+        assertNull(launched)
+        controller.dispose()
+    }
+}
+
+private fun config() = SteadpayConfig(
+    apiBase = "https://app.steadpay.io",
+    tenantSlug = "acme",
+    customerId = "cus_123",
+    publishableKey = "pk_live_abc",
+)

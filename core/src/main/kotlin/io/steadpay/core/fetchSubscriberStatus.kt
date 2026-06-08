@@ -3,6 +3,7 @@ package io.steadpay.core
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
+import java.util.concurrent.TimeUnit
 
 class SteadpayApiError(val code: String) : Exception(code)
 
@@ -21,7 +22,7 @@ fun fetchSubscriberStatus(
     tenantSlug: String,
     customerId: String,
     publishableKey: String,
-    client: OkHttpClient = OkHttpClient(),
+    client: OkHttpClient = OkHttpClient.Builder().callTimeout(10, TimeUnit.SECONDS).build(),
 ): SteadpayState {
     val encodedSlug = java.net.URLEncoder.encode(tenantSlug, "UTF-8")
     val encodedCustomer = java.net.URLEncoder.encode(customerId, "UTF-8")
