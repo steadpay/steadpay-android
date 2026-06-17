@@ -16,11 +16,14 @@ fun SteadpayGate(
     pollIntervalMs: Long = 600_000L,
     forcedStatus: SteadpayStatus? = null,
     callbacks: SteadpayCallbacks? = null,
-    lockoutScreen: (@Composable (triggerCardUpdate: () -> Unit, entitlements: Entitlements?) -> Unit)? = null,
-    warningBanner: (@Composable (triggerCardUpdate: () -> Unit, dismissWarning: () -> Unit) -> Unit)? = null,
+    /** Override the language for enforcement copy. Defaults to the device locale. */
+    locale: String? = null,
+    lockoutScreen: (@Composable (triggerCardUpdate: () -> Unit, entitlements: Entitlements?, message: String, cta: String) -> Unit)? = null,
+    warningBanner: (@Composable (dismissWarning: () -> Unit, message: String) -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
     val context = LocalContext.current
+    val resolvedLocale = resolveLocale(locale ?: java.util.Locale.getDefault().language)
 
     // Key on all config params so a rotated publishableKey or changed tenantSlug
     // disposes the stale controller and creates a fresh one.
@@ -56,12 +59,15 @@ fun SteadpayGate(
 
     when (state.status) {
         SteadpayStatus.Lockout -> {
+            val copy = lockoutCopy(state.enforcementContext, resolvedLocale)
             if (lockoutScreen != null) {
-                lockoutScreen(controller::triggerCardUpdate, state.entitlements)
+                lockoutScreen(controller::triggerCardUpdate, state.entitlements, copy.message, copy.cta ?: "")
             } else {
                 LockoutScreen(
                     poweredByWatermark = state.entitlements?.poweredByWatermark ?: true,
                     entitlements = state.entitlements,
+                    message = copy.message,
+                    cta = copy.cta ?: "",
                     onTriggerCardUpdate = controller::triggerCardUpdate,
                 )
             }
@@ -69,11 +75,12 @@ fun SteadpayGate(
         else -> {
             Column {
                 if (state.status == SteadpayStatus.Warning && !dismissed) {
+                    val message = warningCopy(state.enforcementContext, resolvedLocale).message
                     if (warningBanner != null) {
-                        warningBanner(controller::triggerCardUpdate, controller::dismissWarning)
+                        warningBanner(controller::dismissWarning, message)
                     } else {
                         WarningBanner(
-                            onTriggerCardUpdate = controller::triggerCardUpdate,
+                            message = message,
                             onDismiss = controller::dismissWarning,
                         )
                     }

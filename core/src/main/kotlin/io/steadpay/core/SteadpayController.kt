@@ -46,6 +46,10 @@ class SteadpayController(
 
     fun start() {
         if (forcedStatus != null) {
+            // Sample context so the sandbox renders representative copy.
+            val sampleRetryAt = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US)
+                .apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }
+                .format(java.util.Date(System.currentTimeMillis() + 3L * 24 * 60 * 60 * 1000))
             _stateFlow.value = SteadpayState(
                 status = forcedStatus,
                 cardUpdateUrl = "https://example.com/update-card?forced=1",
@@ -54,6 +58,13 @@ class SteadpayController(
                     customDomain = true,
                     downstreamWebhooks = true,
                 ),
+                declineCategory = when (forcedStatus) {
+                    SteadpayStatus.Warning -> "insufficient_funds"
+                    SteadpayStatus.Lockout -> "card_issue"
+                    else -> null
+                },
+                nextRetryAt = if (forcedStatus == SteadpayStatus.Warning) sampleRetryAt else null,
+                lockoutReason = if (forcedStatus == SteadpayStatus.Lockout) "hard_decline" else null,
             )
             return
         }

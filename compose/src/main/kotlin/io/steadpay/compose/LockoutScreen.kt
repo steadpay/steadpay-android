@@ -22,6 +22,8 @@ import io.steadpay.core.Entitlements
 fun LockoutScreen(
     poweredByWatermark: Boolean,
     entitlements: Entitlements?,
+    message: String,
+    cta: String,
     onTriggerCardUpdate: () -> Unit,
 ) {
     Box(
@@ -47,7 +49,7 @@ fun LockoutScreen(
             )
             Spacer(Modifier.height(12.dp))
             Text(
-                text = "Your subscription is paused.\nUpdate your card to continue.",
+                text = message,
                 fontSize = 15.sp,
                 color = Color(0xFF888888),
                 textAlign = TextAlign.Center,
@@ -61,7 +63,7 @@ fun LockoutScreen(
                 colors = ButtonDefaults.buttonColors(containerColor = Color.White),
             ) {
                 Text(
-                    text = "Update payment method",
+                    text = cta,
                     color = Color(0xFF111111),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,

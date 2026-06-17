@@ -18,9 +18,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.steadpay.core.CallbackName
+import io.steadpay.core.EnforcementContext
 import io.steadpay.core.Entitlements
 import io.steadpay.core.SteadpayStatus
 import io.steadpay.core.computeTransition
+import io.steadpay.core.lockoutCopy
+import io.steadpay.core.resolveLocale
+import io.steadpay.core.warningCopy
 
 @Composable
 fun SteadpaySandbox(
@@ -28,10 +32,22 @@ fun SteadpaySandbox(
     onWarning: (() -> Unit)? = null,
     onActive: (() -> Unit)? = null,
     onError: ((Throwable) -> Unit)? = null,
-    lockoutScreen: (@Composable (triggerCardUpdate: () -> Unit, entitlements: Entitlements?) -> Unit)? = null,
-    warningBanner: (@Composable (triggerCardUpdate: () -> Unit, dismissWarning: () -> Unit) -> Unit)? = null,
+    lockoutScreen: (@Composable (triggerCardUpdate: () -> Unit, entitlements: Entitlements?, message: String, cta: String) -> Unit)? = null,
+    warningBanner: (@Composable (dismissWarning: () -> Unit, message: String) -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
+    val sandboxLocale = resolveLocale(java.util.Locale.getDefault().language)
+    val sampleRetryAt = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US)
+        .apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }
+        .format(java.util.Date(System.currentTimeMillis() + 3L * 24 * 60 * 60 * 1000))
+    val sampleLockoutCopy = lockoutCopy(
+        EnforcementContext(declineCategory = "card_issue", lockoutReason = "hard_decline"),
+        sandboxLocale,
+    )
+    val sampleWarningMessage = warningCopy(
+        EnforcementContext(declineCategory = "insufficient_funds", nextRetryAt = sampleRetryAt),
+        sandboxLocale,
+    ).message
     var currentStatus by remember { mutableStateOf(SteadpayStatus.Active) }
     var sheetOpen by remember { mutableStateOf(false) }
     var dismissed by remember { mutableStateOf(false) }
@@ -74,11 +90,13 @@ fun SteadpaySandbox(
         when (currentStatus) {
             SteadpayStatus.Lockout -> {
                 if (lockoutScreen != null) {
-                    lockoutScreen({ }, null)
+                    lockoutScreen({ }, null, sampleLockoutCopy.message, sampleLockoutCopy.cta ?: "")
                 } else {
                     LockoutScreen(
                         poweredByWatermark = true,
                         entitlements = null,
+                        message = sampleLockoutCopy.message,
+                        cta = sampleLockoutCopy.cta ?: "",
                         onTriggerCardUpdate = {},
                     )
                 }
@@ -87,9 +105,9 @@ fun SteadpaySandbox(
                 Column {
                     if (currentStatus == SteadpayStatus.Warning && !dismissed) {
                         if (warningBanner != null) {
-                            warningBanner({ }, { dismissed = true })
+                            warningBanner({ dismissed = true }, sampleWarningMessage)
                         } else {
-                            WarningBanner(onTriggerCardUpdate = {}, onDismiss = { dismissed = true })
+                            WarningBanner(message = sampleWarningMessage, onDismiss = { dismissed = true })
                         }
                     }
                     content()
@@ -220,11 +238,17 @@ fun SteadpaySandbox(
 @Preview(showBackground = true)
 @Composable
 private fun LockoutPreview() {
-    LockoutScreen(poweredByWatermark = true, entitlements = null, onTriggerCardUpdate = {})
+    LockoutScreen(
+        poweredByWatermark = true,
+        entitlements = null,
+        message = "Your payment method needs to be updated to restore access.",
+        cta = "Update card",
+        onTriggerCardUpdate = {},
+    )
 }
 
 @Preview(showBackground = true)
 @Composable
 private fun WarningPreview() {
-    WarningBanner(onTriggerCardUpdate = {}, onDismiss = {})
+    WarningBanner(message = "We'll retry on June 20, 2026. Please ensure sufficient funds are available.", onDismiss = {})
 }

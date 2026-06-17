@@ -61,5 +61,14 @@ fun fetchSubscriberStatus(
             customDomain = ent.getBoolean("custom_domain"),
             downstreamWebhooks = ent.getBoolean("downstream_webhooks"),
         ),
+        declineCategory = json.optStringOrNull("decline_category"),
+        nextRetryAt = json.optStringOrNull("next_retry_at"),
+        isFinalRetry = json.optBoolean("is_final_retry", false),
+        lockoutReason = json.optStringOrNull("lockout_reason"),
     )
 }
+
+// JSONObject.optString returns "" (not null) for missing/null keys, which would
+// be miscategorized — return a real null instead.
+private fun JSONObject.optStringOrNull(key: String): String? =
+    if (!has(key) || isNull(key)) null else getString(key)
