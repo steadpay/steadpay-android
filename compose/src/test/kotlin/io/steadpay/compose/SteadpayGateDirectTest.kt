@@ -48,7 +48,7 @@ class SteadpayGateDirectTest {
                 forcedStatus = SteadpayStatus.Warning,
             ) { Text("protected content") }
         }
-        composeRule.onNodeWithText("Please update your payment method to avoid interruption.")
+        composeRule.onNodeWithText("Please ensure sufficient funds are available.", substring = true)
             .assertIsDisplayed()
         composeRule.onNodeWithText("protected content").assertIsDisplayed()
     }
@@ -60,7 +60,7 @@ class SteadpayGateDirectTest {
                 tenantSlug = "test", customerId = "cus_test",
                 publishableKey = "pk_test", apiBase = "https://example.com",
                 forcedStatus = SteadpayStatus.Lockout,
-                lockoutScreen = { _, _ ->
+                lockoutScreen = { _, _, _, _ ->
                     builderCalled = true
                     Text("custom lockout")
                 },

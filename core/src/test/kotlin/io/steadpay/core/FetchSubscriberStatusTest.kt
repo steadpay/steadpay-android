@@ -39,6 +39,26 @@ class FetchSubscriberStatusTest {
         assertEquals("https://app.steadpay.io/update-card", result.cardUpdateUrl)
     }
 
+    @Test fun parsesContextAwareCopyFields() {
+        enqueue(200, """
+            {"status":"warning","entitlements":{"powered_by_watermark":true,"custom_domain":false,"downstream_webhooks":false},"card_update_url":"https://app.steadpay.io/update-card","decline_category":"insufficient_funds","next_retry_at":"2026-06-20T12:00:00Z","is_final_retry":true,"lockout_reason":null}
+        """.trimIndent())
+        val result = fetchSubscriberStatus(baseUrl, "acme", "cus_123", "pk_test", client)
+        assertEquals("insufficient_funds", result.declineCategory)
+        assertEquals("2026-06-20T12:00:00Z", result.nextRetryAt)
+        assertEquals(true, result.isFinalRetry)
+        assertNull(result.lockoutReason)
+    }
+
+    @Test fun contextFieldsDefaultWhenAbsent() {
+        enqueue(200, goodBody)
+        val result = fetchSubscriberStatus(baseUrl, "acme", "cus_123", "pk_test", client)
+        assertNull(result.declineCategory)
+        assertNull(result.nextRetryAt)
+        assertEquals(false, result.isFinalRetry)
+        assertNull(result.lockoutReason)
+    }
+
     @Test fun returnsFailOpenOn402() {
         enqueue(402, "{}")
         val result = fetchSubscriberStatus(baseUrl, "acme", "cus_123", "pk_test", client)

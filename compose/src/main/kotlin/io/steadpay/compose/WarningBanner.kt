@@ -14,9 +14,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+// No card-update CTA in warning state (#041): warning is only reachable via soft
+// decline, where retrying — not re-entering card details — is the resolution path.
 @Composable
 fun WarningBanner(
-    onTriggerCardUpdate: () -> Unit,
+    message: String,
     onDismiss: () -> Unit,
 ) {
     Row(
@@ -37,20 +39,12 @@ fun WarningBanner(
         }
         Spacer(Modifier.width(10.dp))
         Text(
-            text = "Please update your payment method to avoid interruption.",
+            text = message,
             modifier = Modifier.weight(1f),
             fontSize = 13.sp,
             color = Color(0xFFD4D4D4),
             lineHeight = 18.sp,
-            maxLines = 2,
-        )
-        Spacer(Modifier.width(14.dp))
-        Text(
-            text = "Update now",
-            modifier = Modifier.clickable(onClick = onTriggerCardUpdate),
-            fontSize = 13.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = Color(0xFFF59E0B),
+            maxLines = 3,
         )
         Spacer(Modifier.width(14.dp))
         Text(

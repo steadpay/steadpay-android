@@ -79,11 +79,11 @@ Callbacks fire on status *transitions*, not on every poll tick.
 ```kotlin
 SteadpayGate(
     // ...
-    lockoutScreen = { triggerCardUpdate, _ ->
-        MyBrandedLockout(onUpdate = triggerCardUpdate)
+    lockoutScreen = { triggerCardUpdate, _, message, cta ->
+        MyBrandedLockout(message = message, cta = cta, onUpdate = triggerCardUpdate)
     },
-    warningBanner = { triggerCardUpdate, dismissWarning ->
-        MyBrandedBanner(onUpdate = triggerCardUpdate, onDismiss = dismissWarning)
+    warningBanner = { dismissWarning, message ->
+        MyBrandedBanner(message = message, onDismiss = dismissWarning)
     },
 ) {
     YourApp()
@@ -131,11 +131,11 @@ The sandbox accepts custom `lockoutScreen` and `warningBanner` overrides:
 
 ```kotlin
 SteadpaySandbox(
-    lockoutScreen = { triggerCardUpdate, _ ->
-        MyBrandedLockout(onUpdate = triggerCardUpdate)
+    lockoutScreen = { triggerCardUpdate, _, message, cta ->
+        MyBrandedLockout(message = message, cta = cta, onUpdate = triggerCardUpdate)
     },
-    warningBanner = { triggerCardUpdate, dismissWarning ->
-        MyBrandedBanner(onUpdate = triggerCardUpdate, onDismiss = dismissWarning)
+    warningBanner = { dismissWarning, message ->
+        MyBrandedBanner(message = message, onDismiss = dismissWarning)
     },
 ) {
     YourApp()

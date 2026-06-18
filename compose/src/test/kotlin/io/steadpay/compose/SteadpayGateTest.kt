@@ -43,7 +43,7 @@ class SteadpayGateTest {
         }
         composeRule.onNodeWithTag("sandbox-dev-badge").performClick()
         composeRule.onNodeWithTag("sandbox-pill-warning").performClick()
-        composeRule.onNodeWithText("Please update your payment method to avoid interruption.")
+        composeRule.onNodeWithText("Please ensure sufficient funds are available.", substring = true)
             .assertIsDisplayed()
         composeRule.onNodeWithText("protected content").assertIsDisplayed()
     }
@@ -51,7 +51,7 @@ class SteadpayGateTest {
     @Test fun customLockoutScreenBuilderCalledOnLockout() {
         composeRule.setContent {
             SteadpaySandbox(
-                lockoutScreen = { _, _ ->
+                lockoutScreen = { _, _, _, _ ->
                     Text("custom lockout")
                 },
             ) {
