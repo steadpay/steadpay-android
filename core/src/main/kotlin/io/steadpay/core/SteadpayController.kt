@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
 
-typealias FetchFn = (String, String, String, String) -> SteadpayState
+typealias FetchFn = (String, String, String, String, String) -> SteadpayState
 
 class SteadpayController(
     val config: SteadpayConfig,
@@ -40,8 +40,8 @@ class SteadpayController(
         .build()
 
     private val fetch: FetchFn = fetch
-        ?: { apiBase, tenantSlug, customerId, publishableKey ->
-            fetchSubscriberStatus(apiBase, tenantSlug, customerId, publishableKey, httpClient)
+        ?: { apiBase, tenantSlug, customerId, publishableKey, hmac ->
+            fetchSubscriberStatus(apiBase, tenantSlug, customerId, publishableKey, hmac, httpClient)
         }
 
     fun start() {
@@ -116,7 +116,7 @@ class SteadpayController(
         isRecoveryPath = false
 
         try {
-            val state = fetch(config.apiBase, config.tenantSlug, config.customerId, config.publishableKey)
+            val state = fetch(config.apiBase, config.tenantSlug, config.customerId, config.publishableKey, config.hmac)
             val cbName = computeTransition(lastStatus, state.status, wasRecovery)
             _stateFlow.value = state
             lastStatus = state.status

@@ -141,6 +141,7 @@ SteadpayGate(
     tenantSlug = "your-slug",
     publishableKey = "pk_live_xxx",
     customerId = currentUser.stripeCustomerId,
+    hmac = currentUser.steadpayHmac, // HMAC-SHA256(identity_hmac_secret, stripe_customer_id) — computed server-side
     onLockout = { analytics.track("billing_lockout") },
     onRecovered = { analytics.track("billing_recovered") },
 ) {

@@ -20,7 +20,7 @@ class SteadpayGateDirectTest {
         composeRule.setContent {
             SteadpayGate(
                 tenantSlug = "test", customerId = "cus_test",
-                publishableKey = "pk_test", apiBase = "https://example.com",
+                publishableKey = "pk_test", apiBase = "https://example.com", hmac = "test_hmac",
                 forcedStatus = SteadpayStatus.Active,
             ) { Text("protected content") }
         }
@@ -32,7 +32,7 @@ class SteadpayGateDirectTest {
         composeRule.setContent {
             SteadpayGate(
                 tenantSlug = "test", customerId = "cus_test",
-                publishableKey = "pk_test", apiBase = "https://example.com",
+                publishableKey = "pk_test", apiBase = "https://example.com", hmac = "test_hmac",
                 forcedStatus = SteadpayStatus.Lockout,
             ) { Text("protected content") }
         }
@@ -44,7 +44,7 @@ class SteadpayGateDirectTest {
         composeRule.setContent {
             SteadpayGate(
                 tenantSlug = "test", customerId = "cus_test",
-                publishableKey = "pk_test", apiBase = "https://example.com",
+                publishableKey = "pk_test", apiBase = "https://example.com", hmac = "test_hmac",
                 forcedStatus = SteadpayStatus.Warning,
             ) { Text("protected content") }
         }
@@ -58,7 +58,7 @@ class SteadpayGateDirectTest {
         composeRule.setContent {
             SteadpayGate(
                 tenantSlug = "test", customerId = "cus_test",
-                publishableKey = "pk_test", apiBase = "https://example.com",
+                publishableKey = "pk_test", apiBase = "https://example.com", hmac = "test_hmac",
                 forcedStatus = SteadpayStatus.Lockout,
                 lockoutScreen = { _, _, _, _ ->
                     builderCalled = true
@@ -75,7 +75,7 @@ class SteadpayGateDirectTest {
         composeRule.setContent {
             SteadpayGate(
                 tenantSlug = "test", customerId = "cus_test",
-                publishableKey = "pk_test", apiBase = "https://example.com",
+                publishableKey = "pk_test", apiBase = "https://example.com", hmac = "test_hmac",
                 forcedStatus = SteadpayStatus.Warning,
                 warningBanner = { _, _ ->
                     builderCalled = true
