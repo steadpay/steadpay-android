@@ -15,6 +15,7 @@ private fun config() = SteadpayConfig(
     tenantSlug = "acme",
     customerId = "cus_123",
     publishableKey = "pk_live_abc",
+    hmac = "test_hmac",
 )
 
 private fun activeState() = SteadpayState(
@@ -23,7 +24,7 @@ private fun activeState() = SteadpayState(
     entitlements = Entitlements(poweredByWatermark = true, customDomain = false, downstreamWebhooks = false),
 )
 
-private fun mockFetch(status: SteadpayStatus): FetchFn = { _, _, _, _ ->
+private fun mockFetch(status: SteadpayStatus): FetchFn = { _, _, _, _, _ ->
     SteadpayState(
         status = status,
         cardUpdateUrl = "https://app.steadpay.io/update-card",
@@ -61,7 +62,7 @@ class SteadpayControllerTest {
         val controller = SteadpayController(
             config(),
             forcedStatus = SteadpayStatus.Warning,
-            fetch = { _, _, _, _ ->
+            fetch = { _, _, _, _, _ ->
                 fetchCalled = true
                 activeState()
             },
@@ -126,7 +127,7 @@ class SteadpayControllerTest {
         var callCount = 0
         val controller = SteadpayController(
             config(pollIntervalMs = 600_000L),
-            fetch = { _, _, _, _ ->
+            fetch = { _, _, _, _, _ ->
                 callCount++
                 activeState()
             },
@@ -146,7 +147,7 @@ class SteadpayControllerTest {
         val controller = SteadpayController(
             config(),
             callbacks = callbacks,
-            fetch = { _, _, _, _ -> throw SteadpayApiError("unauthorized") },
+            fetch = { _, _, _, _, _ -> throw SteadpayApiError("unauthorized") },
             ioDispatcher = UnconfinedTestDispatcher(testScheduler),
         )
         controller.stateFlow.test {
@@ -166,5 +167,6 @@ private fun config(pollIntervalMs: Long = 600_000L) = SteadpayConfig(
     tenantSlug = "acme",
     customerId = "cus_123",
     publishableKey = "pk_live_abc",
+    hmac = "test_hmac",
     pollIntervalMs = pollIntervalMs,
 )

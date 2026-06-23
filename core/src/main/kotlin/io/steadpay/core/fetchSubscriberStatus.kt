@@ -29,11 +29,13 @@ fun fetchSubscriberStatus(
     tenantSlug: String,
     customerId: String,
     publishableKey: String,
+    hmac: String,
     client: OkHttpClient = defaultFetchClient,
 ): SteadpayState {
     val encodedSlug = java.net.URLEncoder.encode(tenantSlug, "UTF-8")
     val encodedCustomer = java.net.URLEncoder.encode(customerId, "UTF-8")
-    val url = "$baseUrl/api/subscriber-status/$encodedSlug?stripe_customer_id=$encodedCustomer"
+    val encodedHmac = java.net.URLEncoder.encode(hmac, "UTF-8")
+    val url = "$baseUrl/api/subscriber-status/$encodedSlug?stripe_customer_id=$encodedCustomer&hmac=$encodedHmac"
 
     val request = Request.Builder()
         .url(url)

@@ -5,6 +5,7 @@ data class SteadpayConfig(
     val tenantSlug: String,
     val customerId: String,
     val publishableKey: String,
+    val hmac: String,
     val pollIntervalMs: Long = 600_000L,
 ) {
     init {
@@ -12,5 +13,6 @@ data class SteadpayConfig(
         require(tenantSlug.isNotEmpty()) { "tenantSlug must not be empty" }
         require(customerId.isNotEmpty()) { "customerId must not be empty" }
         require(publishableKey.startsWith("pk_")) { "publishableKey must start with pk_" }
+        require(hmac.isNotEmpty()) { "hmac must not be empty" }
     }
 }
