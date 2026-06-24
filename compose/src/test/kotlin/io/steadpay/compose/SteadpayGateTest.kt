@@ -43,7 +43,7 @@ class SteadpayGateTest {
         }
         composeRule.onNodeWithTag("sandbox-dev-badge").performClick()
         composeRule.onNodeWithTag("sandbox-pill-warning").performClick()
-        composeRule.onNodeWithText("Please ensure sufficient funds are available.", substring = true)
+        composeRule.onNodeWithText("please ensure funds are available.", substring = true)
             .assertIsDisplayed()
         composeRule.onNodeWithText("protected content").assertIsDisplayed()
     }

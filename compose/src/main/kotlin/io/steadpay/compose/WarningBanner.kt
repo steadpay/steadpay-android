@@ -44,7 +44,7 @@ fun WarningBanner(
             fontSize = 13.sp,
             color = Color(0xFFD4D4D4),
             lineHeight = 18.sp,
-            maxLines = 3,
+            maxLines = 4,
         )
         Spacer(Modifier.width(14.dp))
         Text(
