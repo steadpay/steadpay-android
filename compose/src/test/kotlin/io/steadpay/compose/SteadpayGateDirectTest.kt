@@ -48,7 +48,7 @@ class SteadpayGateDirectTest {
                 forcedStatus = SteadpayStatus.Warning,
             ) { Text("protected content") }
         }
-        composeRule.onNodeWithText("Please ensure sufficient funds are available.", substring = true)
+        composeRule.onNodeWithText("please ensure funds are available.", substring = true)
             .assertIsDisplayed()
         composeRule.onNodeWithText("protected content").assertIsDisplayed()
     }
