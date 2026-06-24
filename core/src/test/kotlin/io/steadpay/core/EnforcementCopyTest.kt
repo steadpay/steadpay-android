@@ -42,19 +42,19 @@ class EnforcementCopyTest {
 
     @Test fun warningCopyVariantsEn() {
         assertEquals(
-            "We'll retry on $d. Please ensure sufficient funds are available.",
+            "Your payment failed. We'll retry on $d — please ensure funds are available.",
             warningCopy(ctx(declineCategory = "insufficient_funds", nextRetryAt = iso), "en").message)
         assertEquals(
-            "This is our final retry on $d. Please add funds — your access will be restricted if it fails.",
+            "Your payment failed. Final retry on $d — add funds or your access will be restricted.",
             warningCopy(ctx(declineCategory = "insufficient_funds", nextRetryAt = iso, isFinalRetry = true), "en").message)
         assertEquals(
-            "We'll retry on $d. You may want to contact your bank.",
+            "Your payment was held by your bank. We'll retry on $d — you may want to contact them.",
             warningCopy(ctx(declineCategory = "bank_hold", nextRetryAt = iso), "en").message)
         assertEquals(
-            "There was a temporary processing issue. We'll retry on $d.",
+            "Your payment failed due to a temporary issue. We'll retry on $d.",
             warningCopy(ctx(declineCategory = "processing_error", nextRetryAt = iso), "en").message)
         assertEquals(
-            "We'll retry on $d, but your saved card may need updating to go through.",
+            "Your payment failed. We'll retry on $d, but your saved card may need updating.",
             warningCopy(ctx(declineCategory = "card_issue", nextRetryAt = iso), "en").message)
     }
 
@@ -67,7 +67,7 @@ class EnforcementCopyTest {
     @Test fun warningCopyLocalized() {
         assertTrue(
             warningCopy(ctx(declineCategory = "insufficient_funds", nextRetryAt = iso, isFinalRetry = true), "fr")
-                .message.contains("Ceci est notre dernier essai"))
+                .message.contains("Dernier essai"))
     }
 
     @Test fun lockoutCopyEn() {
