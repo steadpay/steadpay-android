@@ -5,6 +5,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -122,6 +123,7 @@ class SteadpayController(
             lastStatus = state.status
             fireCallback(cbName)
         } catch (e: Throwable) {
+            if (e is CancellationException || e is Error) throw e
             _stateFlow.value = SteadpayState(status = SteadpayStatus.Error)
             lastStatus = SteadpayStatus.Error
             callbacks?.onError?.invoke(e)

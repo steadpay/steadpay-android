@@ -106,9 +106,16 @@ class FetchSubscriberStatusTest {
         assert(request.path?.contains("stripe_customer_id=cus_123") == true) {
             "Path was: ${request.path}"
         }
-        assert(request.path?.contains("hmac=test_hmac") == true) {
-            "Path was: ${request.path}"
+        assert(request.path?.contains("hmac=") == false) {
+            "HMAC must not appear in URL, was: ${request.path}"
         }
+    }
+
+    @Test fun sendsHmacInHeader() {
+        enqueue(200, goodBody)
+        fetchSubscriberStatus(baseUrl, "acme", "cus_123", "pk_test", "test_hmac", client)
+        val request = server.takeRequest()
+        assertEquals("test_hmac", request.getHeader("X-Steadpay-HMAC"))
     }
 
     @Test fun defaultFetchClientHasCallTimeout() {

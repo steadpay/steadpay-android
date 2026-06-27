@@ -1,7 +1,9 @@
 package io.steadpay.core
 
 import app.cash.turbine.test
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -138,6 +140,38 @@ class SteadpayControllerTest {
         // Wait a bit and confirm no additional polls fired
         kotlinx.coroutines.delay(50)
         assertEquals(countAfterStop, callCount)
+        controller.dispose()
+    }
+
+    @Test fun cancellationExceptionFromFetchDoesNotFireOnError() = runTest {
+        var errorFired = false
+        val callbacks = SteadpayCallbacks(onError = { errorFired = true })
+        val controller = SteadpayController(
+            config(),
+            callbacks = callbacks,
+            fetch = { _, _, _, _, _ -> throw CancellationException("test cancellation") },
+            ioDispatcher = UnconfinedTestDispatcher(testScheduler),
+        )
+        controller.start()
+        advanceUntilIdle()
+        assertFalse(errorFired)
+        controller.dispose()
+    }
+
+    @Test fun jvmErrorFromFetchPropagatesAndDoesNotFireOnError() = runTest {
+        var errorFired = false
+        val callbacks = SteadpayCallbacks(onError = { errorFired = true })
+        val controller = SteadpayController(
+            config(),
+            callbacks = callbacks,
+            fetch = { _, _, _, _, _ -> throw AssertionError("programming defect") },
+            ioDispatcher = UnconfinedTestDispatcher(testScheduler),
+        )
+        try {
+            controller.start()
+            advanceUntilIdle()
+        } catch (_: AssertionError) { }
+        assertFalse(errorFired)
         controller.dispose()
     }
 
