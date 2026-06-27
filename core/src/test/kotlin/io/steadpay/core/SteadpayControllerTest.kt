@@ -158,6 +158,23 @@ class SteadpayControllerTest {
         controller.dispose()
     }
 
+    @Test fun jvmErrorFromFetchPropagatesAndDoesNotFireOnError() = runTest {
+        var errorFired = false
+        val callbacks = SteadpayCallbacks(onError = { errorFired = true })
+        val controller = SteadpayController(
+            config(),
+            callbacks = callbacks,
+            fetch = { _, _, _, _, _ -> throw AssertionError("programming defect") },
+            ioDispatcher = UnconfinedTestDispatcher(testScheduler),
+        )
+        try {
+            controller.start()
+            advanceUntilIdle()
+        } catch (_: AssertionError) { }
+        assertFalse(errorFired)
+        controller.dispose()
+    }
+
     @Test fun onErrorCallbackFiredOnFetchFailure() = runTest {
         var capturedError: Throwable? = null
         val callbacks = SteadpayCallbacks(onError = { capturedError = it })

@@ -123,7 +123,7 @@ class SteadpayController(
             lastStatus = state.status
             fireCallback(cbName)
         } catch (e: Throwable) {
-            if (e is CancellationException) throw e
+            if (e is CancellationException || e is Error) throw e
             _stateFlow.value = SteadpayState(status = SteadpayStatus.Error)
             lastStatus = SteadpayStatus.Error
             callbacks?.onError?.invoke(e)
