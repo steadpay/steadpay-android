@@ -26,14 +26,14 @@ The example references the local `:compose` and `:core` modules — no extra con
 ### Open in Android Studio
 
 ```
-File → Open → select steadpay-android/
+File → Open → select steadpay-android/ (the repo folder is intentionally kept as steadpay-android on disk)
 ```
 
 Android Studio detects both the library modules and the example app. Select the **app** run configuration, choose your emulator or device, and press **▶**.
 
 ### Command line
 
-From the `steadpay-android/` root (requires the `gradle` CLI — no wrapper is checked in):
+From the repo root (requires the `gradle` CLI — no wrapper is checked in):
 
 ```sh
 gradle :example:app:installDebug
