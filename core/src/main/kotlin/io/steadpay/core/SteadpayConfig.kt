@@ -14,5 +14,6 @@ data class SteadpayConfig(
         require(customerId.isNotEmpty()) { "customerId must not be empty" }
         require(publishableKey.startsWith("pk_")) { "publishableKey must start with pk_" }
         require(hmac.isNotEmpty()) { "hmac must not be empty" }
+        require(pollIntervalMs >= 60_000L) { "pollIntervalMs must be ≥ 60 000 ms" }
     }
 }
