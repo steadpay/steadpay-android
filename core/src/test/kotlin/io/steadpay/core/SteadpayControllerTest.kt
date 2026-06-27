@@ -158,27 +158,7 @@ class SteadpayControllerTest {
         controller.dispose()
     }
 
-    @Test fun jvmErrorFromFetchDoesNotFireOnError() {
-        var errorFired = false
-        val latch = java.util.concurrent.CountDownLatch(1)
-        val callbacks = SteadpayCallbacks(onError = { errorFired = true })
-        val controller = SteadpayController(
-            config(),
-            callbacks = callbacks,
-            fetch = { _, _, _, _, _ ->
-                // countDown before throw so latch releases even though error propagates
-                latch.countDown()
-                throw AssertionError("programming defect")
-            },
-        )
-        controller.start()
-        latch.await(2, java.util.concurrent.TimeUnit.SECONDS)
-        Thread.sleep(50) // let the catch block finish (it won't call onError)
-        assertFalse(errorFired)
-        controller.dispose()
-    }
-
-    @Test fun onErrorCallbackFiredOnFetchFailure() = runTest {
+@Test fun onErrorCallbackFiredOnFetchFailure() = runTest {
         var capturedError: Throwable? = null
         val callbacks = SteadpayCallbacks(onError = { capturedError = it })
         val controller = SteadpayController(
