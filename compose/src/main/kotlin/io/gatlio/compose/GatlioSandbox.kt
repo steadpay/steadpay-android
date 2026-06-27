@@ -1,4 +1,4 @@
-package io.steadpay.compose
+package io.gatlio.compose
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -17,17 +17,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.steadpay.core.CallbackName
-import io.steadpay.core.EnforcementContext
-import io.steadpay.core.Entitlements
-import io.steadpay.core.SteadpayStatus
-import io.steadpay.core.computeTransition
-import io.steadpay.core.lockoutCopy
-import io.steadpay.core.resolveLocale
-import io.steadpay.core.warningCopy
+import io.gatlio.core.CallbackName
+import io.gatlio.core.EnforcementContext
+import io.gatlio.core.Entitlements
+import io.gatlio.core.GatlioStatus
+import io.gatlio.core.computeTransition
+import io.gatlio.core.lockoutCopy
+import io.gatlio.core.resolveLocale
+import io.gatlio.core.warningCopy
 
 @Composable
-fun SteadpaySandbox(
+fun GatlioSandbox(
     onLockout: (() -> Unit)? = null,
     onWarning: (() -> Unit)? = null,
     onActive: (() -> Unit)? = null,
@@ -48,25 +48,25 @@ fun SteadpaySandbox(
         EnforcementContext(declineCategory = "insufficient_funds", nextRetryAt = sampleRetryAt),
         sandboxLocale,
     ).message
-    var currentStatus by remember { mutableStateOf(SteadpayStatus.Active) }
+    var currentStatus by remember { mutableStateOf(GatlioStatus.Active) }
     var sheetOpen by remember { mutableStateOf(false) }
     var dismissed by remember { mutableStateOf(false) }
     val log = remember { mutableStateListOf<String>() }
-    var lastStatus by remember { mutableStateOf<SteadpayStatus?>(SteadpayStatus.Active) }
+    var lastStatus by remember { mutableStateOf<GatlioStatus?>(GatlioStatus.Active) }
 
     // Reset dismissed whenever status leaves Warning
     LaunchedEffect(currentStatus) {
-        if (currentStatus != SteadpayStatus.Warning) dismissed = false
+        if (currentStatus != GatlioStatus.Warning) dismissed = false
     }
 
-    val changeStatus: (SteadpayStatus) -> Unit = { next ->
-        if (next == SteadpayStatus.Error) {
-            if (currentStatus != SteadpayStatus.Error) {
+    val changeStatus: (GatlioStatus) -> Unit = { next ->
+        if (next == GatlioStatus.Error) {
+            if (currentStatus != GatlioStatus.Error) {
                 onError?.invoke(RuntimeException("sandbox_error"))
                 log.add(0, "onError(sandbox_error)")
                 if (log.size > 5) log.removeAt(log.size - 1)
-                currentStatus = SteadpayStatus.Error
-                lastStatus = SteadpayStatus.Error
+                currentStatus = GatlioStatus.Error
+                lastStatus = GatlioStatus.Error
             }
         } else {
             val cbName = computeTransition(lastStatus, next, false)
@@ -88,7 +88,7 @@ fun SteadpaySandbox(
     Box(modifier = Modifier.fillMaxSize()) {
         // Render gate content inline based on currentStatus
         when (currentStatus) {
-            SteadpayStatus.Lockout -> {
+            GatlioStatus.Lockout -> {
                 if (lockoutScreen != null) {
                     lockoutScreen({ }, null, sampleLockoutCopy.message, sampleLockoutCopy.cta ?: "")
                 } else {
@@ -103,7 +103,7 @@ fun SteadpaySandbox(
             }
             else -> {
                 Column {
-                    if (currentStatus == SteadpayStatus.Warning && !dismissed) {
+                    if (currentStatus == GatlioStatus.Warning && !dismissed) {
                         if (warningBanner != null) {
                             warningBanner({ dismissed = true }, sampleWarningMessage)
                         } else {
@@ -161,7 +161,7 @@ fun SteadpaySandbox(
                     .padding(16.dp),
             ) {
                     Text(
-                        "STEADPAY SANDBOX",
+                        "GATLIO SANDBOX",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -174,16 +174,16 @@ fun SteadpaySandbox(
                     // Status pills row
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         listOf(
-                            SteadpayStatus.Active,
-                            SteadpayStatus.Warning,
-                            SteadpayStatus.Lockout,
-                            SteadpayStatus.Error,
+                            GatlioStatus.Active,
+                            GatlioStatus.Warning,
+                            GatlioStatus.Lockout,
+                            GatlioStatus.Error,
                         ).forEach { status ->
                             val isSelected = currentStatus == status
                             val pillColor = when (status) {
-                                SteadpayStatus.Active  -> Color(0xFF22C55E)
-                                SteadpayStatus.Warning -> Color(0xFFF59E0B)
-                                SteadpayStatus.Lockout -> Color(0xFFEF4444)
+                                GatlioStatus.Active  -> Color(0xFF22C55E)
+                                GatlioStatus.Warning -> Color(0xFFF59E0B)
+                                GatlioStatus.Lockout -> Color(0xFFEF4444)
                                 else                   -> Color(0xFF6B7280)
                             }
                             Box(
@@ -195,7 +195,7 @@ fun SteadpaySandbox(
                                     .border(1.dp, Color.White.copy(alpha = 0.24f), RoundedCornerShape(20.dp))
                                     .clickable {
                                         changeStatus(status)
-                                        if (status != SteadpayStatus.Error) sheetOpen = false
+                                        if (status != GatlioStatus.Error) sheetOpen = false
                                     }
                                     .semantics { testTag = "sandbox-pill-${status.name.lowercase()}" }
                                     .padding(horizontal = 12.dp, vertical = 6.dp),
@@ -225,7 +225,7 @@ fun SteadpaySandbox(
                         Spacer(Modifier.height(8.dp))
                     }
                     Text(
-                        "onRecovered requires a real card update — test against a live Steadpay environment.",
+                        "onRecovered requires a real card update — test against a live Gatlio environment.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.semantics { testTag = "sandbox-recovered-note" },

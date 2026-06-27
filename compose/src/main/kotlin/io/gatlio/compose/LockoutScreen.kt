@@ -1,4 +1,4 @@
-package io.steadpay.compose
+package io.gatlio.compose
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -16,7 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.steadpay.core.Entitlements
+import io.gatlio.core.Entitlements
 
 @Composable
 fun LockoutScreen(
@@ -72,7 +72,7 @@ fun LockoutScreen(
         }
         if (poweredByWatermark || entitlements?.poweredByWatermark == true) {
             Text(
-                text = "Powered by Steadpay",
+                text = "Powered by Gatlio",
                 fontSize = 12.sp,
                 color = Color(0xFF444444),
                 modifier = Modifier

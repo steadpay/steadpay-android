@@ -18,8 +18,8 @@ rootProject.name = "arcta-example"
 
 includeBuild("..") {
     dependencySubstitution {
-        substitute(module("io.steadpay:core")).using(project(":core"))
-        substitute(module("io.steadpay:compose")).using(project(":compose"))
+        substitute(module("io.gatlio:core")).using(project(":core"))
+        substitute(module("io.gatlio:compose")).using(project(":compose"))
     }
 }
 

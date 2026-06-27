@@ -1,4 +1,4 @@
-package io.steadpay.core
+package io.gatlio.core
 
 import okhttp3.OkHttpClient
 import okhttp3.mockwebserver.MockResponse
@@ -28,20 +28,20 @@ class FetchSubscriberStatusTest {
     }
 
     private val goodBody = """
-        {"status":"active","entitlements":{"powered_by_watermark":true,"custom_domain":false,"downstream_webhooks":false},"card_update_url":"https://app.steadpay.io/update-card"}
+        {"status":"active","entitlements":{"powered_by_watermark":true,"custom_domain":false,"downstream_webhooks":false},"card_update_url":"https://app.gatlio.io/update-card"}
     """.trimIndent()
 
     @Test fun returnsActiveResponseOn200() {
         enqueue(200, goodBody)
         val result = fetchSubscriberStatus(baseUrl, "acme", "cus_123", "pk_test", "test_hmac", client)
-        assertEquals(SteadpayStatus.Active, result.status)
+        assertEquals(GatlioStatus.Active, result.status)
         assertEquals(true, result.entitlements?.poweredByWatermark)
-        assertEquals("https://app.steadpay.io/update-card", result.cardUpdateUrl)
+        assertEquals("https://app.gatlio.io/update-card", result.cardUpdateUrl)
     }
 
     @Test fun parsesContextAwareCopyFields() {
         enqueue(200, """
-            {"status":"warning","entitlements":{"powered_by_watermark":true,"custom_domain":false,"downstream_webhooks":false},"card_update_url":"https://app.steadpay.io/update-card","decline_category":"insufficient_funds","next_retry_at":"2026-06-20T12:00:00Z","is_final_retry":true,"lockout_reason":null}
+            {"status":"warning","entitlements":{"powered_by_watermark":true,"custom_domain":false,"downstream_webhooks":false},"card_update_url":"https://app.gatlio.io/update-card","decline_category":"insufficient_funds","next_retry_at":"2026-06-20T12:00:00Z","is_final_retry":true,"lockout_reason":null}
         """.trimIndent())
         val result = fetchSubscriberStatus(baseUrl, "acme", "cus_123", "pk_test", "test_hmac", client)
         assertEquals("insufficient_funds", result.declineCategory)
@@ -62,18 +62,18 @@ class FetchSubscriberStatusTest {
     @Test fun returnsFailOpenOn402() {
         enqueue(402, "{}")
         val result = fetchSubscriberStatus(baseUrl, "acme", "cus_123", "pk_test", "test_hmac", client)
-        assertEquals(SteadpayStatus.Active, result.status)
+        assertEquals(GatlioStatus.Active, result.status)
         assertEquals(false, result.entitlements?.poweredByWatermark)
         assertNull(result.cardUpdateUrl)
     }
 
-    @Test(expected = SteadpayApiError::class)
+    @Test(expected = GatlioApiError::class)
     fun throwsUnauthorizedOn401() {
         enqueue(401, "{}")
         fetchSubscriberStatus(baseUrl, "acme", "cus_123", "pk_test", "test_hmac", client)
     }
 
-    @Test(expected = SteadpayApiError::class)
+    @Test(expected = GatlioApiError::class)
     fun throwsTenantNotFoundOn404() {
         enqueue(404, "{}")
         fetchSubscriberStatus(baseUrl, "acme", "cus_123", "pk_test", "test_hmac", client)
@@ -83,8 +83,8 @@ class FetchSubscriberStatusTest {
         enqueue(500, "{}")
         try {
             fetchSubscriberStatus(baseUrl, "acme", "cus_123", "pk_test", "test_hmac", client)
-            throw AssertionError("Expected SteadpayApiError")
-        } catch (e: SteadpayApiError) {
+            throw AssertionError("Expected GatlioApiError")
+        } catch (e: GatlioApiError) {
             assertEquals("unexpected_status_500", e.code)
         }
     }
@@ -115,7 +115,7 @@ class FetchSubscriberStatusTest {
         enqueue(200, goodBody)
         fetchSubscriberStatus(baseUrl, "acme", "cus_123", "pk_test", "test_hmac", client)
         val request = server.takeRequest()
-        assertEquals("test_hmac", request.getHeader("X-Steadpay-HMAC"))
+        assertEquals("test_hmac", request.getHeader("X-Gatlio-HMAC"))
     }
 
     @Test fun defaultFetchClientHasCallTimeout() {
@@ -123,11 +123,11 @@ class FetchSubscriberStatusTest {
     }
 }
 
-class SteadpayConfigValidationTest {
+class GatlioConfigValidationTest {
     @Test(expected = IllegalArgumentException::class)
     fun rejectsHttpApiBase() {
-        SteadpayConfig(
-            apiBase = "http://app.steadpay.io",
+        GatlioConfig(
+            apiBase = "http://app.gatlio.io",
             tenantSlug = "acme",
             customerId = "cus_123",
             publishableKey = "pk_live_abc",
@@ -137,8 +137,8 @@ class SteadpayConfigValidationTest {
 
     @Test(expected = IllegalArgumentException::class)
     fun rejectsEmptyTenantSlug() {
-        SteadpayConfig(
-            apiBase = "https://app.steadpay.io",
+        GatlioConfig(
+            apiBase = "https://app.gatlio.io",
             tenantSlug = "",
             customerId = "cus_123",
             publishableKey = "pk_live_abc",
@@ -148,8 +148,8 @@ class SteadpayConfigValidationTest {
 
     @Test(expected = IllegalArgumentException::class)
     fun rejectsNonPkPublishableKey() {
-        SteadpayConfig(
-            apiBase = "https://app.steadpay.io",
+        GatlioConfig(
+            apiBase = "https://app.gatlio.io",
             tenantSlug = "acme",
             customerId = "cus_123",
             publishableKey = "sk_live_abc",
@@ -159,8 +159,8 @@ class SteadpayConfigValidationTest {
 
     @Test(expected = IllegalArgumentException::class)
     fun rejectsEmptyHmac() {
-        SteadpayConfig(
-            apiBase = "https://app.steadpay.io",
+        GatlioConfig(
+            apiBase = "https://app.gatlio.io",
             tenantSlug = "acme",
             customerId = "cus_123",
             publishableKey = "pk_live_abc",
@@ -172,11 +172,11 @@ class SteadpayConfigValidationTest {
 class TriggerCardUpdateSecurityTest {
     @Test fun doesNotLaunchNonHttpsUrl() {
         var launched: String? = null
-        val controller = SteadpayController(
+        val controller = GatlioController(
             config(),
             fetch = { _, _, _, _, _ ->
-                SteadpayState(
-                    status = SteadpayStatus.Lockout,
+                GatlioState(
+                    status = GatlioStatus.Lockout,
                     cardUpdateUrl = "javascript:alert(1)",
                     entitlements = Entitlements(poweredByWatermark = false, customDomain = false, downstreamWebhooks = false),
                 )
@@ -191,8 +191,8 @@ class TriggerCardUpdateSecurityTest {
     }
 }
 
-private fun config() = SteadpayConfig(
-    apiBase = "https://app.steadpay.io",
+private fun config() = GatlioConfig(
+    apiBase = "https://app.gatlio.io",
     tenantSlug = "acme",
     customerId = "cus_123",
     publishableKey = "pk_live_abc",

@@ -1,4 +1,4 @@
-package io.steadpay.core
+package io.gatlio.core
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull

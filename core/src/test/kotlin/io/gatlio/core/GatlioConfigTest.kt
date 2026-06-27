@@ -1,13 +1,13 @@
-package io.steadpay.core
+package io.gatlio.core
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.Assert.assertThrows
 
-class SteadpayConfigTest {
+class GatlioConfigTest {
 
-    private fun validConfig(pollIntervalMs: Long = 60_000L) = SteadpayConfig(
-        apiBase = "https://app.steadpay.io",
+    private fun validConfig(pollIntervalMs: Long = 60_000L) = GatlioConfig(
+        apiBase = "https://app.gatlio.io",
         tenantSlug = "acme",
         customerId = "cus_123",
         publishableKey = "pk_live_abc",

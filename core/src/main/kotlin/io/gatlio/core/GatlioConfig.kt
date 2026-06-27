@@ -1,6 +1,6 @@
-package io.steadpay.core
+package io.gatlio.core
 
-data class SteadpayConfig(
+data class GatlioConfig(
     val apiBase: String,
     val tenantSlug: String,
     val customerId: String,

@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "io.steadpay.core"
+    namespace = "io.gatlio.core"
     compileSdk = 34
     defaultConfig {
         minSdk = 26

@@ -1,4 +1,4 @@
-package io.steadpay.core
+package io.gatlio.core
 
 import app.cash.turbine.test
 import kotlinx.coroutines.CancellationException
@@ -12,58 +12,58 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-private fun config() = SteadpayConfig(
-    apiBase = "https://app.steadpay.io",
+private fun config() = GatlioConfig(
+    apiBase = "https://app.gatlio.io",
     tenantSlug = "acme",
     customerId = "cus_123",
     publishableKey = "pk_live_abc",
     hmac = "test_hmac",
 )
 
-private fun activeState() = SteadpayState(
-    status = SteadpayStatus.Active,
-    cardUpdateUrl = "https://app.steadpay.io/update-card",
+private fun activeState() = GatlioState(
+    status = GatlioStatus.Active,
+    cardUpdateUrl = "https://app.gatlio.io/update-card",
     entitlements = Entitlements(poweredByWatermark = true, customDomain = false, downstreamWebhooks = false),
 )
 
-private fun mockFetch(status: SteadpayStatus): FetchFn = { _, _, _, _, _ ->
-    SteadpayState(
+private fun mockFetch(status: GatlioStatus): FetchFn = { _, _, _, _, _ ->
+    GatlioState(
         status = status,
-        cardUpdateUrl = "https://app.steadpay.io/update-card",
+        cardUpdateUrl = "https://app.gatlio.io/update-card",
         entitlements = Entitlements(poweredByWatermark = true, customDomain = false, downstreamWebhooks = false),
     )
 }
 
-class SteadpayControllerTest {
+class GatlioControllerTest {
 
     @Test fun initialStateIsLoading() {
-        val controller = SteadpayController(config(), fetch = mockFetch(SteadpayStatus.Active))
-        assertEquals(SteadpayStatus.Loading, controller.stateFlow.value.status)
+        val controller = GatlioController(config(), fetch = mockFetch(GatlioStatus.Active))
+        assertEquals(GatlioStatus.Loading, controller.stateFlow.value.status)
         controller.dispose()
     }
 
     @Test fun initialDismissedIsFalse() {
-        val controller = SteadpayController(config(), fetch = mockFetch(SteadpayStatus.Active))
+        val controller = GatlioController(config(), fetch = mockFetch(GatlioStatus.Active))
         assertFalse(controller.dismissedFlow.value)
         controller.dispose()
     }
 
     @Test fun forcedStatusEmitsImmediately() {
-        val controller = SteadpayController(
+        val controller = GatlioController(
             config(),
-            forcedStatus = SteadpayStatus.Lockout,
-            fetch = mockFetch(SteadpayStatus.Active),
+            forcedStatus = GatlioStatus.Lockout,
+            fetch = mockFetch(GatlioStatus.Active),
         )
         controller.start()
-        assertEquals(SteadpayStatus.Lockout, controller.stateFlow.value.status)
+        assertEquals(GatlioStatus.Lockout, controller.stateFlow.value.status)
         controller.dispose()
     }
 
     @Test fun forcedStatusDoesNotCallFetch() {
         var fetchCalled = false
-        val controller = SteadpayController(
+        val controller = GatlioController(
             config(),
-            forcedStatus = SteadpayStatus.Warning,
+            forcedStatus = GatlioStatus.Warning,
             fetch = { _, _, _, _, _ ->
                 fetchCalled = true
                 activeState()
@@ -75,23 +75,23 @@ class SteadpayControllerTest {
     }
 
     @Test fun startEmitsCorrectStatus() = runTest {
-        val controller = SteadpayController(
+        val controller = GatlioController(
             config(),
-            fetch = mockFetch(SteadpayStatus.Active),
+            fetch = mockFetch(GatlioStatus.Active),
             ioDispatcher = UnconfinedTestDispatcher(testScheduler),
         )
         controller.stateFlow.test {
             skipItems(1) // initial Loading
             controller.start()
             val state = awaitItem()
-            assertEquals(SteadpayStatus.Active, state.status)
+            assertEquals(GatlioStatus.Active, state.status)
             cancelAndIgnoreRemainingEvents()
         }
         controller.dispose()
     }
 
     @Test fun dismissWarningEmitsTrueOnDismissedFlow() = runTest {
-        val controller = SteadpayController(config(), fetch = mockFetch(SteadpayStatus.Warning))
+        val controller = GatlioController(config(), fetch = mockFetch(GatlioStatus.Warning))
         controller.dismissedFlow.test {
             skipItems(1) // initial false
             controller.dismissWarning()
@@ -104,11 +104,11 @@ class SteadpayControllerTest {
 
     @Test fun triggerCardUpdateResetsDismissedToFalse() = runTest {
         var launchedUrl: String? = null
-        val controller = SteadpayController(
+        val controller = GatlioController(
             config(),
-            forcedStatus = SteadpayStatus.Lockout,
+            forcedStatus = GatlioStatus.Lockout,
             urlLauncher = { launchedUrl = it },
-            fetch = mockFetch(SteadpayStatus.Active),
+            fetch = mockFetch(GatlioStatus.Active),
         )
         controller.start()
         controller.dismissWarning()
@@ -127,7 +127,7 @@ class SteadpayControllerTest {
 
     @Test fun stopPreventsAdditionalPolls() = runTest {
         var callCount = 0
-        val controller = SteadpayController(
+        val controller = GatlioController(
             config(pollIntervalMs = 600_000L),
             fetch = { _, _, _, _, _ ->
                 callCount++
@@ -145,8 +145,8 @@ class SteadpayControllerTest {
 
     @Test fun cancellationExceptionFromFetchDoesNotFireOnError() = runTest {
         var errorFired = false
-        val callbacks = SteadpayCallbacks(onError = { errorFired = true })
-        val controller = SteadpayController(
+        val callbacks = GatlioCallbacks(onError = { errorFired = true })
+        val controller = GatlioController(
             config(),
             callbacks = callbacks,
             fetch = { _, _, _, _, _ -> throw CancellationException("test cancellation") },
@@ -160,27 +160,27 @@ class SteadpayControllerTest {
 
 @Test fun onErrorCallbackFiredOnFetchFailure() = runTest {
         var capturedError: Throwable? = null
-        val callbacks = SteadpayCallbacks(onError = { capturedError = it })
-        val controller = SteadpayController(
+        val callbacks = GatlioCallbacks(onError = { capturedError = it })
+        val controller = GatlioController(
             config(),
             callbacks = callbacks,
-            fetch = { _, _, _, _, _ -> throw SteadpayApiError("unauthorized") },
+            fetch = { _, _, _, _, _ -> throw GatlioApiError("unauthorized") },
             ioDispatcher = UnconfinedTestDispatcher(testScheduler),
         )
         controller.stateFlow.test {
             skipItems(1) // initial Loading
             controller.start()
             val state = awaitItem()
-            assertEquals(SteadpayStatus.Error, state.status)
+            assertEquals(GatlioStatus.Error, state.status)
             cancelAndIgnoreRemainingEvents()
         }
-        assertTrue(capturedError is SteadpayApiError)
+        assertTrue(capturedError is GatlioApiError)
         controller.dispose()
     }
 }
 
-private fun config(pollIntervalMs: Long = 600_000L) = SteadpayConfig(
-    apiBase = "https://app.steadpay.io",
+private fun config(pollIntervalMs: Long = 600_000L) = GatlioConfig(
+    apiBase = "https://app.gatlio.io",
     tenantSlug = "acme",
     customerId = "cus_123",
     publishableKey = "pk_live_abc",

@@ -1,4 +1,4 @@
-package io.steadpay.compose
+package io.gatlio.compose
 
 import androidx.compose.material3.Text
 import androidx.compose.ui.test.*
@@ -11,13 +11,13 @@ import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [33])
-class SteadpaySandboxTest {
+class GatlioSandboxTest {
 
     @get:Rule val composeRule = createComposeRule()
 
     @Test fun `starts in Active - children render, lockout not present`() {
         composeRule.setContent {
-            SteadpaySandbox { Text("app content") }
+            GatlioSandbox { Text("app content") }
         }
         composeRule.onNodeWithText("app content").assertIsDisplayed()
         composeRule.onNodeWithText("Payment method declined").assertDoesNotExist()
@@ -25,7 +25,7 @@ class SteadpaySandboxTest {
 
     @Test fun `lockout pill shows lockout screen`() {
         composeRule.setContent {
-            SteadpaySandbox { Text("app content") }
+            GatlioSandbox { Text("app content") }
         }
         composeRule.onNodeWithTag("sandbox-dev-badge").performClick()
         composeRule.onNodeWithTag("sandbox-pill-lockout").performClick()
@@ -36,7 +36,7 @@ class SteadpaySandboxTest {
     @Test fun `callback fires when pill is tapped`() {
         var lockoutCalled = false
         composeRule.setContent {
-            SteadpaySandbox(onLockout = { lockoutCalled = true }) { Text("content") }
+            GatlioSandbox(onLockout = { lockoutCalled = true }) { Text("content") }
         }
         composeRule.onNodeWithTag("sandbox-dev-badge").performClick()
         composeRule.onNodeWithTag("sandbox-pill-lockout").performClick()
@@ -45,7 +45,7 @@ class SteadpaySandboxTest {
 
     @Test fun `log appends entry on transition`() {
         composeRule.setContent {
-            SteadpaySandbox { Text("content") }
+            GatlioSandbox { Text("content") }
         }
         composeRule.onNodeWithTag("sandbox-dev-badge").performClick()
         composeRule.onNodeWithTag("sandbox-pill-lockout").performClick()
@@ -56,7 +56,7 @@ class SteadpaySandboxTest {
 
     @Test fun `onRecovered note is present in sheet`() {
         composeRule.setContent {
-            SteadpaySandbox { Text("content") }
+            GatlioSandbox { Text("content") }
         }
         composeRule.onNodeWithTag("sandbox-dev-badge").performClick()
         composeRule.onNodeWithTag("sandbox-recovered-note").assertExists()

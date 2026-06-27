@@ -1,6 +1,6 @@
-package io.steadpay.core
+package io.gatlio.core
 
-data class SteadpayCallbacks(
+data class GatlioCallbacks(
     val onLockout: ((String) -> Unit)? = null,
     val onWarning: ((String) -> Unit)? = null,
     val onActive: ((String) -> Unit)? = null,

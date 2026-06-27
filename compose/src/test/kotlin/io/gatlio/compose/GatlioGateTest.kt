@@ -1,4 +1,4 @@
-package io.steadpay.compose
+package io.gatlio.compose
 
 import androidx.compose.material3.Text
 import androidx.compose.ui.test.*
@@ -10,18 +10,18 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * Gate rendering tests. SteadpaySandbox starts in Active by default;
+ * Gate rendering tests. GatlioSandbox starts in Active by default;
  * status transitions are driven via the DEV badge + pills.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [33])
-class SteadpayGateTest {
+class GatlioGateTest {
 
     @get:Rule val composeRule = createComposeRule()
 
     @Test fun rendersChildrenOnActive() {
         composeRule.setContent {
-            SteadpaySandbox { Text("protected content") }
+            GatlioSandbox { Text("protected content") }
         }
         composeRule.onNodeWithText("protected content").assertIsDisplayed()
         composeRule.onNodeWithText("Payment method declined").assertDoesNotExist()
@@ -29,7 +29,7 @@ class SteadpayGateTest {
 
     @Test fun rendersLockoutScreenOnLockout() {
         composeRule.setContent {
-            SteadpaySandbox { Text("protected content") }
+            GatlioSandbox { Text("protected content") }
         }
         composeRule.onNodeWithTag("sandbox-dev-badge").performClick()
         composeRule.onNodeWithTag("sandbox-pill-lockout").performClick()
@@ -39,7 +39,7 @@ class SteadpayGateTest {
 
     @Test fun rendersWarningBannerAndChildrenOnWarning() {
         composeRule.setContent {
-            SteadpaySandbox { Text("protected content") }
+            GatlioSandbox { Text("protected content") }
         }
         composeRule.onNodeWithTag("sandbox-dev-badge").performClick()
         composeRule.onNodeWithTag("sandbox-pill-warning").performClick()
@@ -50,7 +50,7 @@ class SteadpayGateTest {
 
     @Test fun customLockoutScreenBuilderCalledOnLockout() {
         composeRule.setContent {
-            SteadpaySandbox(
+            GatlioSandbox(
                 lockoutScreen = { _, _, _, _ ->
                     Text("custom lockout")
                 },
@@ -65,7 +65,7 @@ class SteadpayGateTest {
 
     @Test fun customWarningBannerBuilderCalledOnWarning() {
         composeRule.setContent {
-            SteadpaySandbox(
+            GatlioSandbox(
                 warningBanner = { _, _ ->
                     Text("custom banner")
                 },

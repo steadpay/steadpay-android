@@ -8,7 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
-import io.steadpay.compose.SteadpaySandbox
+import io.gatlio.compose.GatlioSandbox
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,7 +26,7 @@ fun HomeScreen(navController: NavController) {
         },
     ) { padding ->
         Box(modifier = Modifier.padding(padding)) {
-            SteadpaySandbox(
+            GatlioSandbox(
                 onLockout = {},
                 onWarning = {},
                 onActive = {},

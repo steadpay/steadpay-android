@@ -1,7 +1,7 @@
-package io.steadpay.core
+package io.gatlio.core
 
-data class SteadpayState(
-    val status: SteadpayStatus = SteadpayStatus.Loading,
+data class GatlioState(
+    val status: GatlioStatus = GatlioStatus.Loading,
     val cardUpdateUrl: String? = null,
     val entitlements: Entitlements? = null,
     // Context-aware copy fields (#041). Null/false when there is no active failure.

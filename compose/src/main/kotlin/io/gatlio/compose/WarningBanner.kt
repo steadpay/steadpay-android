@@ -1,4 +1,4 @@
-package io.steadpay.compose
+package io.gatlio.compose
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

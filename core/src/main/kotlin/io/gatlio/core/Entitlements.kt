@@ -1,4 +1,4 @@
-package io.steadpay.core
+package io.gatlio.core
 
 data class Entitlements(
     val poweredByWatermark: Boolean,

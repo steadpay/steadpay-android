@@ -1,2 +1,2 @@
--keep class io.steadpay.core.** { *; }
--keep interface io.steadpay.core.** { *; }
+-keep class io.gatlio.core.** { *; }
+-keep interface io.gatlio.core.** { *; }

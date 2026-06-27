@@ -1,4 +1,4 @@
-package io.steadpay.core
+package io.gatlio.core
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -14,25 +14,25 @@ import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
 
-typealias FetchFn = (String, String, String, String, String) -> SteadpayState
+typealias FetchFn = (String, String, String, String, String) -> GatlioState
 
-class SteadpayController(
-    val config: SteadpayConfig,
-    val forcedStatus: SteadpayStatus? = null,
-    private val callbacks: SteadpayCallbacks? = null,
+class GatlioController(
+    val config: GatlioConfig,
+    val forcedStatus: GatlioStatus? = null,
+    private val callbacks: GatlioCallbacks? = null,
     private val urlLauncher: ((String) -> Unit)? = null,
     fetch: FetchFn? = null,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
-    private val _stateFlow = MutableStateFlow(SteadpayState())
-    val stateFlow: StateFlow<SteadpayState> = _stateFlow
+    private val _stateFlow = MutableStateFlow(GatlioState())
+    val stateFlow: StateFlow<GatlioState> = _stateFlow
 
     private val _dismissedFlow = MutableStateFlow(false)
     val dismissedFlow: StateFlow<Boolean> = _dismissedFlow
 
     private val scope = CoroutineScope(ioDispatcher + SupervisorJob())
     private var pollingJob: Job? = null
-    private var lastStatus: SteadpayStatus? = null
+    private var lastStatus: GatlioStatus? = null
     private var isRecoveryPath = false
 
     // Shared across all poll calls for this controller instance.
@@ -51,7 +51,7 @@ class SteadpayController(
             val sampleRetryAt = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US)
                 .apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }
                 .format(java.util.Date(System.currentTimeMillis() + 3L * 24 * 60 * 60 * 1000))
-            _stateFlow.value = SteadpayState(
+            _stateFlow.value = GatlioState(
                 status = forcedStatus,
                 cardUpdateUrl = "https://example.com/update-card?forced=1",
                 entitlements = Entitlements(
@@ -60,12 +60,12 @@ class SteadpayController(
                     downstreamWebhooks = true,
                 ),
                 declineCategory = when (forcedStatus) {
-                    SteadpayStatus.Warning -> "insufficient_funds"
-                    SteadpayStatus.Lockout -> "card_issue"
+                    GatlioStatus.Warning -> "insufficient_funds"
+                    GatlioStatus.Lockout -> "card_issue"
                     else -> null
                 },
-                nextRetryAt = if (forcedStatus == SteadpayStatus.Warning) sampleRetryAt else null,
-                lockoutReason = if (forcedStatus == SteadpayStatus.Lockout) "hard_decline" else null,
+                nextRetryAt = if (forcedStatus == GatlioStatus.Warning) sampleRetryAt else null,
+                lockoutReason = if (forcedStatus == GatlioStatus.Lockout) "hard_decline" else null,
             )
             return
         }
@@ -103,12 +103,12 @@ class SteadpayController(
 
     private suspend fun pollLoop() {
         doPoll()
-        if (_stateFlow.value.status == SteadpayStatus.Lockout) return
+        if (_stateFlow.value.status == GatlioStatus.Lockout) return
 
         while (true) {
             delay(config.pollIntervalMs)
             doPoll()
-            if (_stateFlow.value.status == SteadpayStatus.Lockout) break
+            if (_stateFlow.value.status == GatlioStatus.Lockout) break
         }
     }
 
@@ -124,8 +124,8 @@ class SteadpayController(
             fireCallback(cbName)
         } catch (e: Throwable) {
             if (e is CancellationException || e is Error) throw e
-            _stateFlow.value = SteadpayState(status = SteadpayStatus.Error)
-            lastStatus = SteadpayStatus.Error
+            _stateFlow.value = GatlioState(status = GatlioStatus.Error)
+            lastStatus = GatlioStatus.Error
             callbacks?.onError?.invoke(e)
         }
     }

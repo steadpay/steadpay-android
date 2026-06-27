@@ -1,4 +1,4 @@
-package io.steadpay.core
+package io.gatlio.core
 
 // Context-aware enforcement copy (#041).
 //

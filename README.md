@@ -1,6 +1,6 @@
-# steadpay-android
+# gatlio-android
 
-Android SDK for [Steadpay](https://steadpay.io) billing enforcement. Jetpack Compose composable that enforces subscriber billing states natively — no WebView, no third-party UI framework.
+Android SDK for [Gatlio](https://gatlio.io) billing enforcement. Jetpack Compose composable that enforces subscriber billing states natively — no WebView, no third-party UI framework.
 
 ## Installation
 
@@ -8,31 +8,31 @@ Add the `:compose` module to your project (local path or published artifact):
 
 ```kotlin
 // settings.gradle.kts
-includeBuild("path/to/steadpay-android") {
+includeBuild("path/to/gatlio-android") {
     dependencySubstitution {
-        substitute(module("io.steadpay:compose")).using(project(":compose"))
-        substitute(module("io.steadpay:core")).using(project(":core"))
+        substitute(module("io.gatlio:compose")).using(project(":compose"))
+        substitute(module("io.gatlio:core")).using(project(":core"))
     }
 }
 
 // app/build.gradle.kts
 dependencies {
-    implementation("io.steadpay:compose")
+    implementation("io.gatlio:compose")
 }
 ```
 
 ## Quick start
 
-Wrap the authenticated portion of your app in `SteadpayGate`:
+Wrap the authenticated portion of your app in `GatlioGate`:
 
 ```kotlin
-import io.steadpay.compose.SteadpayGate
+import io.gatlio.compose.GatlioGate
 
-SteadpayGate(
+GatlioGate(
     tenantSlug = "acme",
     customerId = currentUser.stripeCustomerId,
     publishableKey = "pk_live_abc123",
-    apiBase = "https://app.steadpay.io",
+    apiBase = "https://app.gatlio.io",
 ) {
     YourApp()
 }
@@ -40,7 +40,7 @@ SteadpayGate(
 
 When billing is current, `YourApp` renders normally. In `Warning` state a dismissable banner appears above it. In `Lockout` a full-screen overlay replaces all content until the card is updated.
 
-## `SteadpayGate` — parameters
+## `GatlioGate` — parameters
 
 | Parameter | Type | Required | Default |
 |-----------|------|----------|---------|
@@ -49,8 +49,8 @@ When billing is current, `YourApp` renders normally. In `Warning` state a dismis
 | `publishableKey` | `String` | ✓ | — |
 | `apiBase` | `String` | ✓ | — |
 | `pollIntervalMs` | `Long` | | `600_000` |
-| `forcedStatus` | `SteadpayStatus?` | | `null` |
-| `callbacks` | `SteadpayCallbacks?` | | `null` |
+| `forcedStatus` | `GatlioStatus?` | | `null` |
+| `callbacks` | `GatlioCallbacks?` | | `null` |
 | `lockoutScreen` | `@Composable (...)` | | built-in |
 | `warningBanner` | `@Composable (...)` | | built-in |
 | `content` | `@Composable () -> Unit` | ✓ | — |
@@ -58,9 +58,9 @@ When billing is current, `YourApp` renders normally. In `Warning` state a dismis
 ## Callbacks
 
 ```kotlin
-SteadpayGate(
+GatlioGate(
     // ...
-    callbacks = SteadpayCallbacks(
+    callbacks = GatlioCallbacks(
         onLockout = { println("locked out") },
         onWarning = { println("warning") },
         onActive = { println("active") },
@@ -77,7 +77,7 @@ Callbacks fire on status *transitions*, not on every poll tick.
 ## Custom enforcement UI
 
 ```kotlin
-SteadpayGate(
+GatlioGate(
     // ...
     lockoutScreen = { triggerCardUpdate, _, message, cta ->
         MyBrandedLockout(message = message, cta = cta, onUpdate = triggerCardUpdate)
@@ -95,12 +95,12 @@ SteadpayGate(
 ### Force a state — `forcedStatus`
 
 ```kotlin
-SteadpayGate(
+GatlioGate(
     tenantSlug = "acme",
     customerId = "cus_test",
     publishableKey = "pk_test_abc",
-    apiBase = "https://app.steadpay.io",
-    forcedStatus = SteadpayStatus.Lockout,  // no network calls
+    apiBase = "https://app.gatlio.io",
+    forcedStatus = GatlioStatus.Lockout,  // no network calls
 ) {
     YourApp()
 }
@@ -108,16 +108,16 @@ SteadpayGate(
 
 Remove `forcedStatus` before shipping.
 
-### Interactive harness — `SteadpaySandbox`
+### Interactive harness — `GatlioSandbox`
 
-`SteadpaySandbox` is a drop-in dev composable that lets you switch billing states and verify your callbacks without a real Steadpay account.
+`GatlioSandbox` is a drop-in dev composable that lets you switch billing states and verify your callbacks without a real Gatlio account.
 
 **How it works:** your content renders at full size with a small `DEV` badge anchored to the bottom-right corner as a true overlay. Tap the badge to open a `ModalBottomSheet` control panel; tap a state pill to switch states; tap outside the sheet to dismiss.
 
 ```kotlin
-import io.steadpay.compose.SteadpaySandbox
+import io.gatlio.compose.GatlioSandbox
 
-SteadpaySandbox(
+GatlioSandbox(
     onLockout = { println("locked out") },
     onWarning = { println("warning") },
     onActive = { println("active") },
@@ -130,7 +130,7 @@ SteadpaySandbox(
 The sandbox accepts custom `lockoutScreen` and `warningBanner` overrides:
 
 ```kotlin
-SteadpaySandbox(
+GatlioSandbox(
     lockoutScreen = { triggerCardUpdate, _, message, cta ->
         MyBrandedLockout(message = message, cta = cta, onUpdate = triggerCardUpdate)
     },
@@ -160,18 +160,18 @@ SteadpaySandbox(
 | any → `Error` | `onError` (first press only) |
 | same → same | nothing |
 
-**`onRecovered` is not fired by the sandbox** — it requires the real card update flow. Test it against a live Steadpay environment.
+**`onRecovered` is not fired by the sandbox** — it requires the real card update flow. Test it against a live Gatlio environment.
 
-Remove `SteadpaySandbox` before shipping to production.
+Remove `GatlioSandbox` before shipping to production.
 
 ## Direct controller usage
 
 For custom state management (manual collect, non-Compose UI, etc.):
 
 ```kotlin
-val controller = SteadpayController(
-    config = SteadpayConfig(
-        apiBase = "https://app.steadpay.io",
+val controller = GatlioController(
+    config = GatlioConfig(
+        apiBase = "https://app.gatlio.io",
         tenantSlug = "acme",
         customerId = currentUser.stripeCustomerId,
         publishableKey = "pk_live_abc123",

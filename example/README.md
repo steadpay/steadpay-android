@@ -1,17 +1,17 @@
-# Arcta Example — steadpay-android
+# Arcta Example — gatlio-android
 
-A fictional analytics SaaS app that demonstrates a complete `steadpay-android` integration. Arcta is used as the host app throughout Steadpay's example suite so you can compare SDK behaviour across platforms side by side.
+A fictional analytics SaaS app that demonstrates a complete `gatlio-android` integration. Arcta is used as the host app throughout Gatlio's example suite so you can compare SDK behaviour across platforms side by side.
 
 ## Screens
 
 | Screen | File | Purpose |
 |--------|------|---------|
 | Login | `app/src/main/kotlin/io/arcta/example/LoginScreen.kt` | Fake login form — any credentials navigate to Home |
-| Home | `app/src/main/kotlin/io/arcta/example/HomeScreen.kt` | Main content wrapped in `SteadpaySandbox` |
+| Home | `app/src/main/kotlin/io/arcta/example/HomeScreen.kt` | Main content wrapped in `GatlioSandbox` |
 | Settings | `app/src/main/kotlin/io/arcta/example/SettingsScreen.kt` | Static account info screen |
 | Content | `app/src/main/kotlin/io/arcta/example/ArctaContent.kt` | Fake analytics dashboard — the "protected" content |
 
-`SteadpaySandbox` lives in `HomeScreen.kt`. It wraps `ArctaContent` and surfaces a `DEV` badge in the bottom-right corner of the screen.
+`GatlioSandbox` lives in `HomeScreen.kt`. It wraps `ArctaContent` and surfaces a `DEV` badge in the bottom-right corner of the screen.
 
 ## Running
 
@@ -57,7 +57,7 @@ Then run `gradle :example:app:installDebug`.
 
 > Physical devices and the Android Emulator cannot reach `localhost` on the host machine directly. Use `10.0.2.2` for the emulator, or ngrok (`ngrok http 3000`) for physical devices, and enter that URL in Live mode.
 
-## Testing with SteadpaySandbox
+## Testing with GatlioSandbox
 
 ### Sandbox mode (no server needed)
 
@@ -95,9 +95,9 @@ Every composable ships with `@Preview` annotations for each state. Open any scre
 
 `onRecovered` is **not** fired by the sandbox — it requires the real card update flow. Test it in Live mode with a Stripe test card.
 
-### Live mode (real Steadpay instance)
+### Live mode (real Gatlio instance)
 
-1. Start Steadpay locally (`npm run dev`) and expose it via ngrok (physical device) or use `http://10.0.2.2:3000` (emulator).
+1. Start Gatlio locally (`npm run dev`) and expose it via ngrok (physical device) or use `http://10.0.2.2:3000` (emulator).
 2. Run `npm run seed` to create the `test-harness` tenant and seeded subscribers.
 3. In the example app, tap the **DEV** badge and switch to **Live** mode.
 4. Enter:
@@ -120,9 +120,9 @@ Background the app and foreground it — `DefaultLifecycleObserver.onStart` fire
 
 ```kotlin
 // HomeScreen.kt
-import io.steadpay.compose.SteadpaySandbox
+import io.gatlio.compose.GatlioSandbox
 
-SteadpaySandbox(
+GatlioSandbox(
     onLockout = {},
     onWarning = {},
     onActive = {},
@@ -131,17 +131,17 @@ SteadpaySandbox(
 }
 ```
 
-For production, replace `SteadpaySandbox` with `SteadpayGate`:
+For production, replace `GatlioSandbox` with `GatlioGate`:
 
 ```kotlin
-import io.steadpay.compose.SteadpayGate
+import io.gatlio.compose.GatlioGate
 
-SteadpayGate(
-    apiBase = "https://api.steadpay.com",
+GatlioGate(
+    apiBase = "https://api.gatlio.io",
     tenantSlug = "your-slug",
     publishableKey = "pk_live_xxx",
     customerId = currentUser.stripeCustomerId,
-    hmac = currentUser.steadpayHmac, // HMAC-SHA256(identity_hmac_secret, stripe_customer_id) — computed server-side
+    hmac = currentUser.gatlioHmac, // HMAC-SHA256(identity_hmac_secret, stripe_customer_id) — computed server-side
     onLockout = { analytics.track("billing_lockout") },
     onRecovered = { analytics.track("billing_recovered") },
 ) {
@@ -149,4 +149,4 @@ SteadpayGate(
 }
 ```
 
-View-based (non-Compose) apps use `SteadpayViewModel` from the `:core` module directly and collect `StateFlow` in `lifecycleScope` — see the main SDK README for the XML/View integration path.
+View-based (non-Compose) apps use `GatlioViewModel` from the `:core` module directly and collect `StateFlow` in `lifecycleScope` — see the main SDK README for the XML/View integration path.
