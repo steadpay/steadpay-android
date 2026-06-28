@@ -15,6 +15,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "steadpay-android"
+rootProject.name = "gatlio-android"
 include(":core")
 include(":compose")
